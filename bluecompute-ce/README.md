@@ -1,7 +1,7 @@
 
 # Deploying BlueCompute into OpenShift
 
-This [README](https://github.ibm.com/CASE-DevOps-GSE/DevOps/blob/master/bluecompute-ce/README.md) provides the minimal steps to deploy the BlueCompute application into an OpenShift cluster without any persistent storage.  This is intentional to provide a quick starting point with a sample application.   
+This [README](../bluecompute-ce/README.md) provides the minimal steps to deploy the BlueCompute application into an OpenShift cluster without any persistent storage.  This is intentional to provide a quick starting point with a sample application.   
 
 ![BlueCompute Architecture](../static/imgs/bluecompute-architecture.png)
 

@@ -11,23 +11,23 @@ Welcome to the Staging environment of the DevOps Garage Solution Engineering tea
 
 
 ## Deploy the `bluecompute-ce` Cloud Native application on OpenShift
-* [Link](https://github.ibm.com/CASE-DevOps-GSE/DevOps/blob/master/bluecompute-ce/README.md)
+* [Link](../bluecompute-ce/README.md)
 * **Description:**
   - Deploy a Cloud Native demo application to your OpenShift cluster.  
 
 ## Configure Tekton pipeline for `bluecompute-ce`
-* [Link](https://github.ibm.com/CASE-DevOps-GSE/DevOps/blob/master/bluecompute-ce-tekton-pipelines/README.md)
+* [Link](../bluecompute-ce-tekton-pipelines/README.md)
 * **Description:**
   - Use [Tekton](https://github.com/tektoncd), a Kubernetes Native CICD pipeline resource, to configure pipelines for `bluecompute-ce`.
   - This tutorial will walk you through the installation of the latest Tekton release (v0.8.0 at the time of this post) on an OpenShift cluster.
 
 ## Configure Kabanero Pipeline for `bluecompute-ce`
-* [Link](https://github.ibm.com/CASE-DevOps-GSE/DevOps/blob/master/bluecompute-ce-kabanero-pipelines/README.md)
+* [Link](../bluecompute-ce-kabanero-pipelines/README.md)
 * **Description:**
   - Use [Kabanero](https://kabanero.io/), an open source project bringing together foundational open source technologies into a modern microservices-based frameworkm to configure pipelines for `bluecompute-ce`.
   - This tutorial will walk you through the installation of the IBM Cloud Pak for Applications on an OpenShift cluster running on IBM Cloud.
 
 ## Debug Tekton pipelines
-* [Link](https://github.ibm.com/CASE-DevOps-GSE/DevOps/blob/master/faq/README.md)
+* [Link](../faq/README.md)
 * **Description:**
   - Sharing notes on how to debug issues with Tekton Pipelines.  

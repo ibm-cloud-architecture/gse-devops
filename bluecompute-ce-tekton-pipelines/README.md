@@ -1,7 +1,7 @@
 
 # Configure a Tekton CICD Pipeline for the Web application
 
-This [README](https://github.ibm.com/CASE-DevOps-GSE/DevOps/blob/master/bluecompute-ce-tekton-pipelines/README.md) is a follow on to deploying `bluecompute-ce` on an OpenShift cluster and will focus on three activities:
+This [README](../bluecompute-ce-tekton-pipelines/README.md) is a follow on to deploying `bluecompute-ce` on an OpenShift cluster and will focus on three activities:
 
 1. Configure the BlueCompute Web app deployment to pull images from the IBM Container Registry.
 2. Configure and manually validate a Tekton CICD pipeline.
@@ -13,7 +13,7 @@ This [README](https://github.ibm.com/CASE-DevOps-GSE/DevOps/blob/master/bluecomp
 ## Requirements:
 - A deployed OpenShift cluster.
 - Install Git CLI `git`, Docker CLI `docker`, Kubernetes CLI `kubectl`, and OpenShift CLI `oc`.
-- Deploy `bluecompute-ce` reference application - [Instructions](https://github.ibm.com/CASE-DevOps-GSE/DevOps/blob/master/bluecompute-ce/README.md).
+- Deploy `bluecompute-ce` reference application - [Instructions](../bluecompute-ce/README.md).
 
 
 ## Install Tekton Pipeline, Dashboard and Webhook extension
