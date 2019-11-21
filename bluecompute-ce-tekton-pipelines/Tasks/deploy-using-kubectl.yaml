@@ -1,0 +1,39 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  name: bluecompute-web-deploy-task
+spec:
+  inputs:
+    resources:
+    - name: git-source
+      outputImageDir: ""
+      targetPath: ""
+      type: git
+    - name: docker-image
+      outputImageDir: ""
+      targetPath: ""
+      type: image
+    params:
+    - name: pathToYamlFile
+      description: The path to the yaml file to deploy within the git source
+    - name: image-name
+      description: Url of image repository
+    - name: image-tag
+      description: Tag of the images to be used.
+      default: "latest"
+  steps:
+  - name: modify-app-deploy-yaml
+    image: registry.access.redhat.com/ubi8/ubi:latest
+    command: ["sed"]
+    args:
+    - "-i"
+    - "-e"
+    - "s;__IMAGE__;$(inputs.params.image-name):$(inputs.params.image-tag);g"
+    - "/workspace/git-source/$(inputs.params.pathToYamlFile)"
+  - name: deploy-image
+    image: lachlanevenson/k8s-kubectl
+    command: ["kubectl"]
+    args:
+        - "apply"
+        - "-f"
+        - "/workspace/git-source/$(inputs.params.pathToYamlFile)"
