@@ -1,7 +1,7 @@
 
-# Configure a Kabanero CICD Pipeline for the Web application
+# Configure a Kabanero Pipeline for Bluecompute
 
-This [README](https://github.ibm.com/CASE-DevOps-GSE/DevOps/blob/master/bluecompute-ce-tekton-pipelines/README.md) is a follow on to deploying `bluecompute-ce` on an OpenShift cluster and will focus on the following activities.  The screen captures provided are based on a Managed OpenShift 3.11 cluster with IBM Cloud Pak for Applications v3.0.1 running on IBM Cloud.  Tekton v0.5.2 is bundled into this version of the Cloud Pak for Application install.
+This [README](../bluecompute-ce-kabanero-pipelines/README.md) is a follow on to deploying `bluecompute-ce` on an OpenShift cluster and will focus on the following activities.  The screen captures provided are based on a Managed OpenShift 3.11 cluster with IBM Cloud Pak for Applications v3.0.1 running on IBM Cloud.  Tekton v0.5.2 is bundled into this version of the Cloud Pak for Application install.
 
 1. Configure the BlueCompute Web app deployment to pull images from the IBM Container Registry.
 2. Configure and manually validate a Kabanero CICD pipeline.
@@ -27,7 +27,7 @@ Note: The [IBM Cloud Schematics](https://cloud.ibm.com/schematics/workspaces) se
 
 
 ## Deploy the `bluecompute-ce` application to the `kabanero` namespace
-1. Follow the steps documented in these [instructions](https://github.ibm.com/CASE-DevOps-GSE/DevOps/blob/master/bluecompute-ce/README.md).  Ensure that your `oc` CLI are set to the `kabanero` project by `oc project kabanero` or add `-n kabanero` for any `oc` commands.  For step 2, the updated commands to set the Security Context Constraints (SCC) for the `default` Service Account are listed below.
+1. Follow the steps documented in these [instructions](../bluecompute-ce/README.md).  Ensure that your `oc` CLI are set to the `kabanero` project by `oc project kabanero` or add `-n kabanero` for any `oc` commands.  For step 2, the updated commands to set the Security Context Constraints (SCC) for the `default` Service Account are listed below.
 ```
 oc adm policy add-scc-to-user anyuid system:serviceaccount:kabanero:default
 oc adm policy add-scc-to-user privileged system:serviceaccount:kabanero:default
@@ -106,14 +106,14 @@ kubectl delete route web
 
 
 ## Create Kabanero Pipeline:
-For this activity, we will using a restructured `bluecompute-web` Github repository to use the out of the box [nodejs Appsody Stack](https://github.com/appsody/stacks/tree/master/incubator/nodejs) and [nodejs Kabanero Collection](https://github.com/kabanero-io/collections/tree/master/incubator/nodejs).  
+For this activity, we will using a refactored `bluecompute-web` Github repository to use the out of the box [nodejs Appsody Stack](https://github.com/appsody/stacks/tree/master/incubator/nodejs) and [nodejs Kabanero Collection](https://github.com/kabanero-io/collections/tree/master/incubator/nodejs).  
 
-A future post will be created to provide a guide on how to restructure existing Github repositories to use Appsody Stacks and Kabanero Collections.  An alternative option is to create a custom Appsody Stack - [link](https://appsody.dev/docs/stacks/create/).
+Refer to this [post](../bluecompute-ce-kabanero-pipelines/Refactor-Application-Appsody-Stack.md) on how the Bluecompute Web repository was refactored to work with the kabanero/nodejs:0.2 stack.  An alternative option is to create a custom Appsody Stack - [link](https://appsody.dev/docs/stacks/create/).
 
 1. Fork the updated [BlueCompute Web repo in Appsody format](https://github.com/hollisc/refarch-cloudnative-bluecompute-web-appsody) repository.  Browse to the BlueCompute Web repository and click on the Fork button on the top right corner. This will fork a repository under your own Git account.  The original `bluecompute-web` repository is [here](https://github.com/ibm-cloud-architecture/refarch-cloudnative-bluecompute-web/tree/spring) for reference.
 2. Clone the git repository for the Kabanero Pipeline yamls.  
 ```
-git clone git@github.ibm.com:CASE-DevOps-GSE/DevOps.git
+git clone git@github.com:ibm-cloud-architecture/gse-devops.git
 cd DevOps
 cd bluecompute-ce-kabanero-pipelines
 ```  

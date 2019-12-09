@@ -1,12 +1,21 @@
 
 # FAQ
 
+## Troubleshooting tips for Kabanero pipelines
+- Issue: Kabanero Pipeline failing at build with the following message `error building at STEP "RUN yum upgrade --disableplugin=subscription-manager -y  && yum clean --disableplugin=subscription-manager packages  && echo 'Finished installing dependencies'": exit status 1`.
+- Cause: This is due to a change in the appsody-buildah:latest (or appsody-buildah:0.5.0) image and tracked via the following git issues: https://github.com/kabanero-io/kabanero-pipelines/issues/126 and https://github.com/appsody/appsody-buildah/issues/10.
+- Workaround: Update the Tekton tasks for your stack to reference `appsody-buildah:0.2.1` instead of using the `latest` tag.
+    - Pipe out the yaml for the current Task you are working with using the command `oc get task <task name> -o yaml -n <namespace>` and save it to a yaml file.
+    - Create the custom task resource with the command `oc apply -f <task yaml> -n <namespace>`.
+    - Pipe out the yaml for the current Pipeline referencing the Task being updated with the command `oc get pipeline <pipeline name> -o yaml -n <namespace>` and save it to a yaml file.  
+    - Create the custom pipeline resource with the command `oc apply -f <pipeline yaml> -n <namespace>`.
+    - Execute your custom pipeline. 
+
 ## Troubleshooting tips for Tekton Pipelines
 - **Tip 1: Install the required CLIs**
     - Install [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) CLI.
     - Install [tkn](https://github.com/tektoncd/cli) CLI.
     - Install [oc](https://docs.openshift.com/enterprise/3.2/cli_reference/get_started_cli.html) CLI if you are using an OpenShift cluster.
-
 
 - **Tip 2: Confirm the credentials / token to access the registry is valid**
     - Verify that you are able to pull images from your private registry to your local machine.
@@ -36,14 +45,12 @@
       docker push <Registry URL>/<namespace>/busybox
       ```
 
-
 - **Tip 3: Check that the service account image has a push and pull secret**
     - Confirm that the traget service account being used has an associated image pull and push secret.
       ```
       # Check the secrets associated to a service account
       kubectl describe serviceaccount <service account name> -n <namespace>
       ```
-
 
 - **Tip 4: Check to make sure all variable substituion is using $() as of Tekton Pipeline v0.7.0**
     - In Tekton Pipeline v0.7.0 [release](https://github.com/tektoncd/pipeline/releases/tag/v0.7.0), there is no backward compatibility support for usage of ${} for variable substituion.  Only $() is supported.  

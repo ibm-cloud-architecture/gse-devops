@@ -28,7 +28,7 @@ oc adm policy add-scc-to-user privileged system:serviceaccount:bluecompute:defau
 
 3. Deploy BlueCompute
 ```
-git clone git@github.ibm.com:CASE-DevOps-GSE/DevOps.git
+git clone git@github.com:ibm-cloud-architecture/gse-devops.git
 cd DevOps
 cd bluecompute-ce
 oc apply --recursive --filename bluecompute-os
