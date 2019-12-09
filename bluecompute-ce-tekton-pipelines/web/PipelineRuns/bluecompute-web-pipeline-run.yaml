@@ -1,0 +1,24 @@
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineRun
+metadata:
+#  name: bluecompute-web-pipeline-run
+  generateName: bluecompute-web-pr-
+spec:
+  pipelineRef:
+    name: bluecompute-build-and-deploy-pipeline
+  resources:
+    - name: git-source-web
+      resourceRef:
+        name: git-source-web
+    - name: docker-image-web
+      resourceRef:
+        name: docker-image-web
+  params:
+    - name: pathToYamlFile
+      value: "k8s/deployment.yaml"
+    - name: image-name
+      value: us.icr.io/<user>/bluecompute-web
+    - name: image-tag
+      value: "0.6.1"
+  serviceAccount: pipeline-account
+  timeout: "1h0m0s"
