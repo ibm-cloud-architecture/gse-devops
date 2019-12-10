@@ -1,17 +1,17 @@
 apiVersion: tekton.dev/v1alpha1
 kind: Pipeline
 metadata:
-  name: bluecompute-build-and-deploy-pipeline
+  name: bluecompute-build-and-deploy-pipeline-orders
 spec:
   resources:
-    - name: git-source
+    - name: git-source-orders
       type: git
-    - name: docker-image
+    - name: docker-image-orders
       type: image
   params:
     - name: pathToContext
       description: The path to the build context, used by Kaniko - within the workspace
-      default: /workspace/git-source
+      default: /workspace/git-source-orders
     - name: pathToDockerFile
       description: The path to the dockerfile to build (relative to the context)
       default: Dockerfile
@@ -35,13 +35,13 @@ spec:
         value: "$(params.image-tag)"
     resources:
       inputs:
-      - name: git-source
-        resource: git-source
+      - name: git-source-orders
+        resource: git-source-orders
       outputs:
-      - name: docker-image
-        resource: docker-image
+      - name: docker-image-orders
+        resource: docker-image-orders
     taskRef:
-      name: bluecompute-web-build-task
+      name: bluecompute-orders-build-task
   - name: deploy-task
     params:
       - name: pathToYamlFile
@@ -52,11 +52,11 @@ spec:
         value: "$(params.image-tag)"
     resources:
       inputs:
-      - name: git-source
-        resource: git-source
-      - name: docker-image
-        resource: docker-image
+      - name: git-source-orders
+        resource: git-source-orders
+      - name: docker-image-orders
+        resource: docker-image-orders
     runAfter:
     - build-task
     taskRef:
-      name: bluecompute-web-deploy-task
+      name: bluecompute-orders-deploy-task

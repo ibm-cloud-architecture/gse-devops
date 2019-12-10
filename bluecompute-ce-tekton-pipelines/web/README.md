@@ -1,19 +1,19 @@
 
-# Configure a Tekton CICD Pipeline for the Web application
+# Configure a Tekton Pipelines for Bluecompute Web application
 
-This [README](../bluecompute-ce-tekton-pipelines/README.md) is a follow on to deploying `bluecompute-ce` on an OpenShift cluster and will focus on three activities:
+This [README](../../bluecompute-ce-tekton-pipelines/web/README.md) is a follow on to deploying [bluecompute-ce](../../bluecompute-ce/README.md) on an OpenShift cluster and will focus on three activities:
 
 1. Configure the BlueCompute Web app deployment to pull images from the IBM Container Registry.
 2. Configure and manually validate a Tekton CICD pipeline.
 3. Configure a Tekton Webhook to trigger the pipeline upon a push.
 
-![Tekton Pipeline Architecture](../static/imgs/BlueCompute-DevOps-Tekton.png)
+![Tekton Pipeline Architecture](../../static/imgs/BlueCompute-DevOps-Tekton.png)
 
 
 ## Requirements:
 - A deployed OpenShift cluster.
 - Install Git CLI `git`, Docker CLI `docker`, Kubernetes CLI `kubectl`, and OpenShift CLI `oc`.
-- Deploy `bluecompute-ce` reference application - [Instructions](../bluecompute-ce/README.md).
+- Deploy `bluecompute-ce` reference application - [Instructions](../../bluecompute-ce/README.md).
 
 
 ## Install Tekton Pipeline, Dashboard and Webhook extension
@@ -39,7 +39,7 @@ Previous releases for all three components are available [here](https://storage.
   # Retrieve the Tekton Dashboard Route (ie. tekton-dashboard-tekton-pipelines.<cluster name>-ibm-<unique key>.us-south.containers.appdomain.cloud )
   oc get route
 ```
-![Tekton Dashboard](../static/imgs/tekton-dashboard.png)
+![Tekton Dashboard](../../static/imgs/tekton-dashboard.png)
 
 3. Install [Tekton Webhook Extension](https://github.com/tektoncd/experimental/blob/master/webhooks-extension/docs/InstallReleaseBuild.md):
 ```
@@ -47,10 +47,11 @@ Previous releases for all three components are available [here](https://storage.
   oc apply -f https://github.com/tektoncd/dashboard/releases/download/v0.2.0/openshift-webhooks-extension.yaml
 ```
 **Note**: Refresh the Tekton Dashboard URL and the Webhook option should be available now on the left hand menu.  If you experience an error viewing the Webhooks page on Firefox, try the Chrome browser.
-![Tekton Webhook Menu Selection](../static/imgs/tekton-webhook-menu-selection.png)
+
+![Tekton Webhook Menu Selection](../../static/imgs/tekton-webhook-menu-selection.png)
 
 
-## Update the Web Deployment to pull images from IBM Container Registry instead of Dockerhub:
+## Update the Web deployment to pull images from IBM Container Registry instead of Dockerhub:
 1. Create an API key for use by the service account to access the Registry.  Instruction are available in this [link](https://cloud.ibm.com/docs/iam?topic=iam-userapikey#create_user_key).
 
 2. Validate the API key and push BlueCompute web docker image to the IBM Container Registry using your local Docker CLI.
@@ -63,31 +64,31 @@ docker login -u iamapikey -p <your_apikey> <registry_url>
     For namespaces set up in UK-South, use uk.icr.io
     For namespaces set up in US-South, use us.icr.io
 ```
-![Docker Login](../static/imgs/docker-login.png)
+![Docker Login](../../static/imgs/docker-login.png)
 
 3. Log in to [IBM Cloud](https://cloud.ibm.com/), select OpenShift and click on Registry. Then click on namespaces and then click on create namespace and create a new user.
-![IBM Container Registry](../static/imgs/ibm-container-registry.png)
+![IBM Container Registry](../../static/imgs/ibm-container-registry.png)
 
-4. Pull the BlueCompute web image from Dockerhub
+4. Pull the BlueCompute Web image from Dockerhub
 ```
 docker pull ibmcase/bluecompute-web:0.6.0
 ```
-![Docker Pull from Dockerhub](../static/imgs/docker-pull-image-dockerhub.png)
+![Docker Pull from Dockerhub](../../static/imgs/docker-pull-image-dockerhub.png)
 
 5. Tag the image with the IBM Container Registry URL.
 ```
 docker tag ibmcase/bluecompute-web:0.6.0 us.icr.io/<user>/bluecompute-web:0.6.0
 ```
-![Docker Tag](../static/imgs/docker-tag.png)
+![Docker Tag](../../static/imgs/docker-tag.png)
 
 6. Push the image to IBM Container Registry
 ```
 docker push us.icr.io/<user>/bluecompute-web:0.6.0
 ```
-![Docker Push](../static/imgs/docker-push.png)
+![Docker Push](../../static/imgs/docker-push.png)
 
  Verify the image appears in the IBM Container Registry.
-![IBM Container Registry](../static/imgs/updated-ibm-container-registry.png)
+![IBM Container Registry](../../static/imgs/updated-ibm-container-registry.png)
 
 7. Create an image pull secret with the API key.  Refer to this [link](https://cloud.ibm.com/docs/containers?topic=containers-images#other_registry_accounts) for detailed instructions.
 ```
@@ -103,19 +104,22 @@ kubectl patch -n <namespace_name> serviceaccount/default --type='json' -p='[{"op
 
 9. Update Bluecompute Web deployment with the image from IBM Container Registry.
   - From OpenShift console, click `bluecompute` project, select Application > Deployments and click on `web`.
-  - Select Actions > Edit YAML and an inline editor will appear.  Search for `image: 'ibmcase/bluecompute-web:0.6.0'` and update the image reference to the image you uploaded to the IBM Container Registry (ie. "us.icr.io/<user>/bluecompute-web:0.6.0").  
+  - Select Actions > Edit YAML and an inline editor will appear.  Search for `image: 'ibmcase/bluecompute-web:0.6.0'` and update the image reference to the image you uploaded to the IBM Container Registry (ie. `us.icr.io/< user >/bluecompute-web:0.6.0`).  
   - Verify the pod is able to pull the image successfully.  You can monitor the termination of the existing pod for the web application and creation of a new pod using `kubectl get pods -w`.
-  ![Update Deployment with new image](../static/imgs/deployment-update-image.png)
+  ![Update Deployment with new image](../../static/imgs/deployment-update-image.png)
 
 
-## Create Tekton Pipeline:
-1. Clone the BlueCompute Web repository.
-  - Clone the [repository](https://github.com/hollisc/refarch-cloudnative-bluecompute-web) and push up the contents to your own repository.  This will be referenced by the Tekton CICD pipeline further in this README.  
-2. Clone the git repository for the Tekton yamls.  
+## Create Tekton Pipeline for the Web application:
+1. Fork the BlueCompute Web microservice repository.  This will create a repository under your own Git account. This repository will be referenced by the Tekton pipeline further in this README.
+    - Web [repository-web](https://github.com/ibm-cloud-architecture/refarch-cloudnative-bluecompute-web)
+    - A Kubernetes deployment yaml is required for the CD portion of the pipeline so clone the forked microservice, **switch to the spring branch** and created a folder name "k8s".  Within this folder, create a new filed called `deployment.yaml`, copy and paste the content from the corresponding web repository into the file and push the changes to your repository.
+      - Web [repository-web](https://github.com/hollisc/refarch-cloudnative-bluecompute-web/blob/spring/k8s/deployment.yaml)
+2. Clone the [repo](https://github.com/ibm-cloud-architecture/gse-devops.git)  for the Tekton yamls.  
 ```
-git clone git@github.ibm.com:CASE-DevOps-GSE/DevOps.git
+git clone git@github.com:ibm-cloud-architecture/gse-devops.git
 cd DevOps
 cd bluecompute-ce-tekton-pipelines
+cd web
 ```  
 3. Verify oc cli is set to use `bluecompute` project.
 ```
@@ -174,11 +178,11 @@ kubectl apply -f Pipelines/build-and-deploy-pipeline.yaml
 oc get route -n tekton-pipelines
 ```
  - Pipeline
-![Tekton Pipeline](../static/imgs/tekton-pipeline.png)
+![Tekton Pipeline](../../static/imgs/tekton-pipeline-web.png)
  - PipelineResources
-![Tekton PipelineResources](../static/imgs/tekton-pipelineresources.png)
+![Tekton PipelineResources](../../static/imgs/tekton-pipelineresources-web.png)
  - Tasks
-![Tekton Tasks](../static/imgs/tekton-tasks.png)
+![Tekton Tasks](../../static/imgs/tekton-tasks-web.png)
 13. Manually run the Tekton Pipeline.
  - Let's validate the various pieces of the Tekton pipeline works.  This can be achieved by a PipelineRun.  Before we kick off the pipeline, let's update `PipelineRuns/bluecompute-web-pipeline-run.yaml`.
  - Update the YAML with your IBM Container Registry URL by updating the value `us.icr.io/<user>/bluecompute-web`.
@@ -188,7 +192,7 @@ oc get route -n tekton-pipelines
       * The `bluecompute-web-pr-5522c-build-task-*` pod is executing the build task.  It starts the pre-defined init containers followed by the steps defined in the Tekton Build Task.
       * The `bluecompute-web-pr-5522c-deploy-task-*` pod is executing the deployment task.  It starts the init containers followed by the steps defined in the Tekton Deploy Task.
       * Once the deployment is complete, the existing `web` application pod is terminated and a new `web` pod is started referencing the new image that was created and pushed to the IBM Container Registry.
-      ![Manual run of Tekton pipeline](../static/imgs/tekton-pipeline-pod-status.png)
+      ![Manual run of Tekton pipeline](../../static/imgs/tekton-pipeline-pod-status-web.png)
 
 
 ## Configure Tekton Github Webhook:
@@ -197,14 +201,14 @@ oc get route -n tekton-pipelines
  - Check the admin:repo_hook option and click Generate token.
 2. Open the Tekton Dashboard in a browser and click on Webhooks item in the left hand menu and select "Add Webhook".
 3. Create an `Access Token` by clicking on the `+` and specifying a name and the Github token generated in the previous step.
-![Tekton Webhook Access Token](../static/imgs/tekton-access-token.png)
+![Tekton Webhook Access Token](../../static/imgs/tekton-access-token.png)
 4. Fill in the fields similar to below but use your own Github repository and Docker Registry.  Click Create.
-![Tekton Webhook Configuration](../static/imgs/tekton-webhook-config.png)
+![Tekton Webhook Configuration](../../static/imgs/tekton-webhook-config.png)
 5. A Tekton Webhook has been configured.
-![Tekton Webhook](../static/imgs/tekton-webhook.png)
+![Tekton Webhook](../../static/imgs/tekton-webhook.png)
 
 
-## Validate webhook by pushing in a change to the web application:
+## Validate webhook by pushing in a change to the Web application:
 ```
 Currently there is an open bug related to timing issue that causes PipelineRuns to fail if the creation of the PipelineResources are not completed in time.  
 This is tracked via https://github.com/tektoncd/experimental/issues/240.
@@ -222,13 +226,13 @@ cd refarch-cloudnative-bluecompute-web
   - Monitor the pods in the "bluecompute" project and verify a PipelineRun was triggered and a new `web` application pod is started.
   `kubectl get pods -w -n bluecompute`
 
-   ![Webhook Triggered Tekton Pipeline](../static/imgs/webhook-tekton-pipeline-pod-status.png)
+   ![Webhook Triggered Tekton Pipeline](../../static/imgs/webhook-tekton-pipeline-pod-status.png)
   - Alternatively, one can monitor the webhook triggered pipelinerun from the Tekton Dashboard as well.
 
       - PipelineRun View:
-      ![Tekton Dashboard View](../static/imgs/tekton-dashboard-pipelinerun.png)
+      ![Tekton Dashboard View](../../static/imgs/tekton-dashboard-pipelinerun.png)
       - TaskRun View:
-      ![Tekton Dashboard View](../static/imgs/tekton-dashboard-taskruns.png)
+      ![Tekton Dashboard View](../../static/imgs/tekton-dashboard-taskruns.png)
 
 
 ## Uninstall Tekton components:

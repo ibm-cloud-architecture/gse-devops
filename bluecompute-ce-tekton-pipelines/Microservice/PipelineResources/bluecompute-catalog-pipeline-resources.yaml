@@ -3,21 +3,21 @@ items:
 - apiVersion: tekton.dev/v1alpha1
   kind: PipelineResource
   metadata:
-    name: docker-image
+    name: docker-image-catalog
   spec:
     params:
     - name: url
-      value: us.icr.io/<user>/bluecompute-web
+      value: us.icr.io/jhovany/bluecompute-catalog
     type: image
 - apiVersion: tekton.dev/v1alpha1
   kind: PipelineResource
   metadata:
-    name: git-source
+    name: git-source-catalog
   spec:
     params:
     - name: revision
       value: spring
     - name: url
-      value: https://github.com/<Git Org>/refarch-cloudnative-bluecompute-web
+      value: https://github.com/jjgonz987/refarch-cloudnative-micro-catalog
     type: git
 kind: List

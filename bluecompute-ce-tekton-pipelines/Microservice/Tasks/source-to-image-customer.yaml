@@ -1,0 +1,41 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  name: bluecompute-customer-build-task
+spec:
+  inputs:
+    resources:
+      - name: git-source-customer
+        outputImageDir: ""
+        targetPath: ""
+        type: git
+    params:
+      - name: pathToContext
+        description: The path to the build context, used by Kaniko - within the workspace
+        default: /workspace/git-source-customer
+      - name: pathToDockerFile
+        description: The path to the dockerfile to build (relative to the context)
+        default: Dockerfile
+      - name: image-name
+        description: Url of image repository
+      - name: image-tag
+        description: Tag to apply to the built image
+        default: "latest"
+  outputs:
+    resources:
+    - name: docker-image-customer
+      outputImageDir: /builder/home/image-outputs/docker-image-customer
+      targetPath: ""
+      type: image
+  steps:
+  - name: build-push
+    image: gcr.io/kaniko-project/executor
+    command:
+    - /kaniko/executor
+    args:
+    - --dockerfile=$(inputs.params.pathToDockerFile)
+    - --destination=$(inputs.params.image-name):$(inputs.params.image-tag)
+    - --context=$(inputs.params.pathToContext)
+  volumes:
+  - emptyDir: {}
+    name: varlibcontainers

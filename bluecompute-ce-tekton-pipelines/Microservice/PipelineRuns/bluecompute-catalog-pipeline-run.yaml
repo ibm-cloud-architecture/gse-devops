@@ -1,23 +1,23 @@
 apiVersion: tekton.dev/v1alpha1
 kind: PipelineRun
 metadata:
-#  name: bluecompute-web-pipeline-run
-  generateName: bluecompute-web-pr-
+#  Name: bluecompute-customer-pipeline-run
+  generateName: bluecompute-catalog-pr-
 spec:
   pipelineRef:
-    name: bluecompute-build-and-deploy-pipeline
+    name: bluecompute-build-and-deploy-pipeline-catalog
   resources:
-    - name: git-source
+    - name: git-source-catalog
       resourceRef:
-        name: git-source
-    - name: docker-image
+        name: git-source-catalog
+    - name: docker-image-catalog
       resourceRef:
-        name: docker-image
+        name: docker-image-catalog
   params:
     - name: pathToYamlFile
       value: "k8s/deployment.yaml"
     - name: image-name
-      value: us.icr.io/<user>/bluecompute-web
+      value: us.icr.io/jhovany/bluecompute-catalog
     - name: image-tag
       value: "0.6.1"
   serviceAccount: pipeline-account
