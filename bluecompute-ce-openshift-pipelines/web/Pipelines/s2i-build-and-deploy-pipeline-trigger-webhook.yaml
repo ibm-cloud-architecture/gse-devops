@@ -1,0 +1,62 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Pipeline
+metadata:
+  name: bluecompute-s2i-build-and-deploy-pipeline-webhook
+spec:
+  resources:
+    - name: git-source #app-git
+      type: git
+    - name: docker-image #app-image
+      type: image
+  params:
+    - name: event-type
+      type: string
+      description: "The event type"
+    - name: pathToYamlFile
+      description: The path to the yaml file to deploy within the git source
+      default: k8s/deployment.yaml
+    - name: image-name
+      description: Url of image repository
+    - name: image-tag
+      description: Tag to apply to the built image
+  tasks:
+  - name: build-task
+    taskRef:
+      name: s2i-nodejs
+    params:
+      - name: TLSVERIFY
+        value: "false"
+      - name: image-name
+        value: "$(params.image-name)"
+      - name: image-tag
+        value: "$(params.image-tag)"
+    resources:
+      inputs:
+      - name: source
+        resource: git-source #app-git
+      outputs:
+      - name: image
+        resource: docker-image #app-image
+  - name: deploy-task
+    conditions:
+    - conditionRef: deployment-condition
+      params:
+      - name: event-type
+        value: $(params.event-type)
+    params:
+      - name: pathToYamlFile
+        value:  "$(params.pathToYamlFile)"
+      - name: image-name
+        value: "$(params.image-name)"
+      - name: image-tag
+        value: "$(params.image-tag)"
+    resources:
+      inputs:
+      - name: git-source-web
+        resource: git-source #app-git
+      - name: docker-image-web
+        resource: docker-image #app-image
+    runAfter:
+    - build-task
+    taskRef:
+      name: bluecompute-web-deploy-task

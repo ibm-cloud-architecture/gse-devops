@@ -1,0 +1,23 @@
+apiVersion: v1
+items:
+- apiVersion: tekton.dev/v1alpha1
+  kind: PipelineResource
+  metadata:
+    name: web-git
+  spec:
+    type: git
+    params:
+    - name: revision
+      value: spring-s2i
+    - name: url
+      value: https://github.com/<user>/refarch-cloudnative-bluecompute-web
+- apiVersion: tekton.dev/v1alpha1
+  kind: PipelineResource
+  metadata:
+    name: web-image
+  spec:
+    type: image
+    params:
+    - name: url
+      value: us.icr.io/<Git Org>/bluecompute-web
+kind: List

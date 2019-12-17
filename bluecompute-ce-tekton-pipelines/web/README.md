@@ -117,7 +117,7 @@ kubectl patch -n <namespace_name> serviceaccount/default --type='json' -p='[{"op
 2. Clone the [repo](https://github.com/ibm-cloud-architecture/gse-devops.git)  for the Tekton yamls.  
 ```
 git clone git@github.com:ibm-cloud-architecture/gse-devops.git
-cd DevOps
+cd gse-devops
 cd bluecompute-ce-tekton-pipelines
 cd web
 ```  
