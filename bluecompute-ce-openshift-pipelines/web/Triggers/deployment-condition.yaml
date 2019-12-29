@@ -1,0 +1,14 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Condition
+metadata:
+  name: deployment-condition
+spec:
+  params:
+  - name: "event-type"
+    type: string
+    description: "The GitHub event type"
+  check:
+    name: deployment-condition
+    image: alpine
+    command: ["/bin/sh"]
+    args: ['-ce', "[[ $(params.event-type) != pull_request ]]" ]

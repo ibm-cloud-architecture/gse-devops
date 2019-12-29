@@ -1,0 +1,16 @@
+apiVersion: tekton.dev/v1alpha1
+kind: TriggerBinding
+metadata:
+  name: bluecompute-s2i-build-and-deploy-pipeline-pullrequest-binding
+spec:
+  params:
+  - name: gitrevision
+    value: $(body.pull_request.head.sha)
+  - name: gitrepositoryurl
+    value: $(body.repository.clone_url)
+  - name: docker-tag
+    value: $(body.repository.name):$(body.pull_request.head.sha)
+  - name: event-type
+    value: $(header.X-Github-Event)
+  - name: webhooks-tekton-git-branch
+    value: $(body.webhooks-tekton-git-branch)

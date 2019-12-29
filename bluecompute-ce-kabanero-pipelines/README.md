@@ -114,7 +114,7 @@ Refer to this [post](../bluecompute-ce-kabanero-pipelines/Refactor-Application-A
 2. Clone the git repository for the Kabanero Pipeline yamls.  
 ```
 git clone git@github.com:ibm-cloud-architecture/gse-devops.git
-cd DevOps
+cd gse-devops
 cd bluecompute-ce-kabanero-pipelines
 ```  
 3. Verify oc cli is set to use `kabanero` project.

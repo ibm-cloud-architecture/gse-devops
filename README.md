@@ -3,6 +3,7 @@
 Welcome to the Staging environment of the DevOps Garage Solution Engineering team.
 
 :warning: Please note the following observations.
+
 - Only the version of Tekton bundled into the IBM Cloud Pak for Applications (ICP4A) is supported.  If you install a newer or older version of Tekton after the ICPA install, it will override the version that is bundled in ICP4A.
 - The [Tekton Webhook Extension](https://github.com/tektoncd/experimental/tree/master/webhooks-extension) currently only supports Github webhooks.
 - Kabanero installation includes includes Istio, Knative, Tekton, kAppNav, Appsody, Che).
@@ -33,7 +34,7 @@ Welcome to the Staging environment of the DevOps Garage Solution Engineering tea
 * **Description:**
   - Use [OpenShift Pipelines](https://www.openshift.com/learn/topics/pipelines), the Cloud Native CI/CD approach on OpenShift based on Tekton, to configure pipelines for `bluecompute-ce`.
   - This tutorial will walk you through the installation of OpenShift Pipelines on an OpenShift 4x cluster running on VMware.
-* [OpenShift Pipelines for Web Application - In Progress](bluecompute-ce-openshift-pipelines/README.md)
+* [OpenShift Pipelines for Web Application - In Progress](bluecompute-ce-openshift-pipelines/web/README.md)
 * [OpenShift Pipelines for Microservices - TBD]
 
 ## Debug Tekton pipelines
