@@ -1,0 +1,21 @@
+apiVersion: v1
+items:
+- apiVersion: tekton.dev/v1alpha1
+  kind: PipelineResource
+  metadata:
+    name: cp4i-build-image
+  spec:
+    params:
+    - name: url
+      value: image-registry.openshift-image-registry.svc:5000/<namespace>/<image name>
+    type: image
+- apiVersion: tekton.dev/v1alpha1
+  kind: PipelineResource
+  metadata:
+    name: cp4i-ace-server-source
+  spec:
+    params:
+    - name: url
+      value: <Github repo URL>
+    type: git
+kind: List

@@ -1,0 +1,32 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Pipeline
+metadata:
+  name: ace-server-uninstall
+spec:
+  params:
+    - name: project
+      description: Specify the name of the project being built.
+      default: inventory_asuh
+    - name: env
+      default: "dev"
+      description: Specfiy the current environment. It is used in computing the Helm release name.
+
+  resources:
+    - name: source
+      type: git
+  tasks:
+  - name: uninstall-ace-server
+    taskRef:
+      name: uninstall-ace-server
+    params:
+    - name: integrationComponent
+      value: ace-server
+    - name: project
+      value: $(params.project)
+    - name: env
+      value: $(params.env)
+      
+    resources:
+      inputs:
+      - name: source
+        resource: source

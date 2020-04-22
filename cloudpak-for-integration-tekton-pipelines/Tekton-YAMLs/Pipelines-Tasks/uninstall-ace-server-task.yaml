@@ -1,0 +1,94 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  name: uninstall-ace-server
+spec:
+  inputs:
+    resources:
+    - name: source
+      type: git
+    params:
+    - name: integrationComponent
+      default: integration/tracing
+      description: The integration component that needs to be uninstalled.
+    - name: project
+      description: Specify the name of the project being built.
+    - name: env
+      default: "dev"
+      description: Specfiy the current environment. It is used in computing the Helm release name.
+      
+  steps:
+  - name: uninstall-instance
+    image: docker.io/rsundara/cp4i-setup
+    workingdir: /workspace/source
+    env:
+      - name: INTEGRATION_COMPONENT
+        value: $(inputs.params.integrationComponent)
+      - name: IBMCLOUD_PASSWORD
+        valueFrom:
+          secretKeyRef:
+            name: common-settings
+            key: password
+      - name: IBMCLOUD_USERNAME
+        valueFrom:
+          secretKeyRef:
+            name: common-settings
+            key: username
+      - name: CLUSTER
+        valueFrom:
+          secretKeyRef:
+            name: common-settings
+            key: url
+      - name: CLOUD_TYPE
+        valueFrom:
+          secretKeyRef:
+            name: common-settings
+            key: cloudType
+      - name: STORAGE_FILE
+        valueFrom:
+          secretKeyRef:
+            name: common-settings
+            key: fileStorage
+      - name: ACE_PROJECT
+        value: $(inputs.params.project) 
+      - name: ENV
+        value: $(inputs.params.env) 
+            
+    command: ["/bin/sh"]
+    args:
+      - -c
+      - |
+        set -eu;
+        cloudctl login -a $CLUSTER -n integration -u $IBMCLOUD_USERNAME -p $IBMCLOUD_PASSWORD --skip-ssl-validation
+        echo Component      : $INTEGRATION_COMPONENT;
+        echo Cloud type     : $CLOUD_TYPE;
+        echo Project        : $ACE_PROJECT;
+        echo Environment    : $ENV;
+        echo File  Storage  : $STORAGE_FILE;
+        
+        
+        cd $INTEGRATION_COMPONENT;
+        echo "Running uninstall.sh";
+        # sh uninstall.sh;
+
+        RELEASE=ace-server-cp4iivt-dev
+        if [ ! -z "$ACE_PROJECT" ] & [ ! -z "$ENV" ] ; then
+          RELEASE=ace-server-$ACE_PROJECT-$ENV; 
+        fi;
+
+        helm delete $RELEASE --purge --tls
+
+        # In case of IBM Cloud use ibmc-file-gold for the file storage
+        FILE_STORAGE=nfs
+        if [ "$CLOUD_TYPE" = "ibmcloud" ]; then 
+          FILE_STORAGE="ibmc-file-gold"; 
+        fi;
+        if [ ! -z "$STORAGE_FILE" ]; then 
+          FILE_STORAGE=$STORAGE_FILE
+        fi;
+        if [ "FILE_STORAGE" = "nfs" ]; then 
+          oc delete -f pv.yaml; 
+        fi;
+
+        echo "Uninstall of Ace Server is now complete"
+        echo

@@ -1,0 +1,53 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  name: generate-bar
+spec:
+  inputs:
+    params:
+    - name: project
+      description: Specify the name of the project being built.
+      default: inventory_asuh
+
+    resources:
+    - name: source
+      type: git
+
+  steps:
+  - name: compile
+    image: docker.io/rsundara/ace-build
+    workingdir: /workspace/source
+    env:
+      - name: PROJECT
+        value: $(inputs.params.project)
+
+    command: ["/bin/sh"]
+    args:
+      - -c
+      - |
+        set -eu;
+        echo Project : $PROJECT;
+        echo "Running compile";
+
+        #Used for debugging with mqsicreatebar
+        /usr/bin/Xvfb :100 &
+        export DISPLAY=:100
+
+        cd workspace
+        echo "Generating the BAR file in the location" ./workspace/${PROJECT}/gen/${PROJECT}.bar
+
+        mqsicreatebar -data . -b ./${PROJECT}/gen/${PROJECT}.bar -a ${PROJECT}
+
+        echo Compile completed
+        echo "Running checkin"
+
+        # git config core.sshCommand "ssh -i /root/.ssh/id_rsa_example -F /dev/null"
+        git config --global user.name "user"
+        git config --global user.email user@ibm.com
+
+        git add .
+        git commit -m "Enable CP4I ACE Server CI/CD"
+        git status
+        git push origin master
+
+        echo Check-in completed

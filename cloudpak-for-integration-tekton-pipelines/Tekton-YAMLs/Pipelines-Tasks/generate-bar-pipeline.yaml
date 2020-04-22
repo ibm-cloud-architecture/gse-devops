@@ -1,0 +1,25 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Pipeline
+metadata:
+  name: generate-bar
+spec:
+  params:
+    - name: project
+      description: Specify the name of the project being built.
+      default: inventory_asuh
+  
+  resources:
+    - name: source
+      type: git
+  tasks:
+  - name: generate-bar-task
+    resources:
+      inputs:
+      - name: source
+        resource: source
+    params:
+      - name: project
+        value: $(params.project)
+    
+    taskRef:
+      name: generate-bar

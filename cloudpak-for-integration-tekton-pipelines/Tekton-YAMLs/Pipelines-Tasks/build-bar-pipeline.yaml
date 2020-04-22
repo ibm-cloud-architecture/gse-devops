@@ -1,0 +1,34 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Pipeline
+metadata:
+  name: build-bar
+spec:
+  params:
+    - name: project
+      description: Specify the name of the project being built.
+      default: inventory_asuh
+    - name: buildversion
+      description: Docker image version for the BAR file
+      default: ""
+      
+  resources:
+    - name: source
+      type: git
+    - name: image
+      type: image
+  tasks:
+  - name: build-task
+    resources:
+      inputs:
+      - name: source
+        resource: source
+      outputs:
+      - name: image
+        resource: image
+    params:
+      - name: buildversion
+        value: $(params.buildversion)
+      - name: dockerfileLocation
+        value: ./workspace/$(params.project)/Dockerfile
+    taskRef:
+      name: build-bar

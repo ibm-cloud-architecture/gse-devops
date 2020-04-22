@@ -1,0 +1,150 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  name: install-ace-server
+spec:
+  inputs:
+    resources:
+    - name: source
+      type: git
+    - name: image
+      type: image
+    params:
+    - name: integrationComponent
+      default: ace-server
+      description: The integration component that needs to be installed.
+    - name: env
+      default: "dev"
+      description: Specfiy the current environment. It is used in computing the Helm release name.
+    - name: production
+      default: "false"
+      description: Specifies if the deployment is production-like with High Availability enabled. Default [false]
+    - name: project
+      description: Specify the name of the project being built.
+      default: inventory-asuh
+    - name: buildversion
+      description: Docker image version for the BAR file
+      default: ""
+
+  steps:
+  - name: install-instance
+    image: docker.io/rsundara/cp4i-setup
+    workingdir: /workspace/source
+    env:
+      - name: INTEGRATION_COMPONENT
+        value: $(inputs.params.integrationComponent)
+      - name: IBMCLOUD_PASSWORD
+        valueFrom:
+          secretKeyRef:
+            name: common-settings
+            key: password
+      - name: IBMCLOUD_USERNAME
+        valueFrom:
+          secretKeyRef:
+            name: common-settings
+            key: username
+      - name: CLUSTER
+        valueFrom:
+          secretKeyRef:
+            name: common-settings
+            key: url
+      - name: CLOUD_TYPE
+        valueFrom:
+          secretKeyRef:
+            name: common-settings
+            key: cloudType
+      - name: OFFLINE_INSTALL
+        valueFrom:
+          secretKeyRef:
+            name: common-settings
+            key: offlineInstall
+      - name: STORAGE_FILE
+        valueFrom:
+          secretKeyRef:
+            name: common-settings
+            key: fileStorage
+      - name: PRODUCTION
+        value: $(inputs.params.production)
+      - name: ENV
+        value: $(inputs.params.env)
+      - name: IMAGE
+        value: "$(inputs.resources.image.url):$(inputs.params.buildversion)"
+      - name: ACE_PROJECT
+        value: $(inputs.params.project)
+
+    command: ["/bin/sh"]
+    args:
+      - -c
+      - |
+        set -eu;
+        cloudctl login -a $CLUSTER -n integration -u $IBMCLOUD_USERNAME -p $IBMCLOUD_PASSWORD --skip-ssl-validation
+        echo Component      : $INTEGRATION_COMPONENT;
+        echo Cloud type     : $CLOUD_TYPE;
+        echo Project        : $ACE_PROJECT;
+        echo Environment    : $ENV;
+        echo Offline        : $OFFLINE_INSTALL;
+        echo Image          : $IMAGE;
+        echo File  Storage  : $STORAGE_FILE;
+
+
+        # cd $INTEGRATION_COMPONENT;
+        echo "Running setup"
+
+        PROJECT=as-ace
+        oc project $PROJECT
+
+        echo "Setup of Ace Dashboard is now complete"
+        echo
+
+        echo "Running install";
+
+        RELEASE=ace-server-cp4iivt-dev
+        if [ ! -z "$ACE_PROJECT" ] & [ ! -z "$ENV" ] ; then
+          RELEASE=ace-server-$ACE_PROJECT-$ENV;
+        fi;
+
+        PRODUCTION_DEPLOY=false
+        if [ "$PRODUCTION" = "true" ];     then PRODUCTION_DEPLOY="true"; fi;
+
+        TLS_HOSTNAME=$(oc get routes -n kube-system | grep proxy | awk -F' ' '{print $2 }')
+
+        # In case of IBM Cloud use ibmc-file-gold for the file storage
+        FILE_STORAGE=nfs
+        if [ "$CLOUD_TYPE" = "ibmcloud" ]; then
+          FILE_STORAGE="ibmc-file-gold";
+        fi;
+        if [ ! -z "$STORAGE_FILE" ]; then
+          FILE_STORAGE=$STORAGE_FILE
+        fi;
+
+        # In case of production, it can be set to "3"
+        REPLICA_COUNT=1
+        if [ "$PRODUCTION" = "true" ]; then
+          REPLICA_COUNT="3";
+        fi;
+
+        IMAGE_REGISTRY=cp.icr.io
+        if $OFFLINE_INSTALL; then
+          IMAGE_REGISTRY="image-registry.openshift-image-registry.svc:5000/ace";
+        fi;
+
+        ACE_IMAGE=$IMAGE_REGISTRY/ibm-ace-server-prod:11.0.0.6.1
+        if [ ! -z "$IMAGE" ];  then
+          ACE_IMAGE=$IMAGE;
+        fi;
+
+
+        TRACE_ENABLED=true
+        PULL_SECRET=$(oc get secrets -n as-ace | grep ibm-cr-pull-secret |  awk -F' ' '{print $1 }')
+
+        # Update values.yaml based on user inputs
+        sed "s/PULL_SECRET/$PULL_SECRET/g"              ./values-copy.yaml  > ./values-copy-1.yaml
+        sed "s+ACE_ONLY+$(inputs.resources.image.url):$(inputs.params.buildversion)+g"                    ./values-copy-1.yaml > ./values.yaml
+
+
+        echo
+        echo "Running Helm Install"
+        echo
+        helm init --client-only
+        helm repo update
+        helm install --tls --repo https://raw.githubusercontent.com/IBM/charts/master/repo/entitled/ --name inventory-tester ibm-ace-server-icp4i-prod --debug -f values.yaml
