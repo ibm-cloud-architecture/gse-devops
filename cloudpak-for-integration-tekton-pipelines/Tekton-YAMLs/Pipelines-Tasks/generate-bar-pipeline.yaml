@@ -7,7 +7,7 @@ spec:
     - name: project
       description: Specify the name of the project being built.
       default: inventory_asuh
-  
+      type: string
   resources:
     - name: source
       type: git
@@ -20,6 +20,6 @@ spec:
     params:
       - name: project
         value: $(params.project)
-    
+
     taskRef:
       name: generate-bar

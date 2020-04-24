@@ -7,10 +7,11 @@ spec:
     - name: project
       description: Specify the name of the project being built.
       default: inventory_asuh
+      type: string
     - name: env
       default: "dev"
       description: Specfiy the current environment. It is used in computing the Helm release name.
-
+      type: string
   resources:
     - name: source
       type: git
@@ -25,7 +26,7 @@ spec:
       value: $(params.project)
     - name: env
       value: $(params.env)
-      
+
     resources:
       inputs:
       - name: source

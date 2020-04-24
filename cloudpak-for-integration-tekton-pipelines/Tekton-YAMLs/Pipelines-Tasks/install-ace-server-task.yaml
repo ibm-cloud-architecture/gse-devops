@@ -13,19 +13,23 @@ spec:
     - name: integrationComponent
       default: ace-server
       description: The integration component that needs to be installed.
+      type: string
     - name: env
       default: "dev"
       description: Specfiy the current environment. It is used in computing the Helm release name.
+      type: string
     - name: production
       default: "false"
       description: Specifies if the deployment is production-like with High Availability enabled. Default [false]
+      type: string
     - name: project
       description: Specify the name of the project being built.
       default: inventory-asuh
+      type: string
     - name: buildversion
       description: Docker image version for the BAR file
       default: ""
-
+      type: string
   steps:
   - name: install-instance
     image: docker.io/rsundara/cp4i-setup
@@ -90,7 +94,7 @@ spec:
         # cd $INTEGRATION_COMPONENT;
         echo "Running setup"
 
-        PROJECT=as-ace
+        PROJECT=ace
         oc project $PROJECT
 
         echo "Setup of Ace Dashboard is now complete"
@@ -135,7 +139,7 @@ spec:
 
 
         TRACE_ENABLED=true
-        PULL_SECRET=$(oc get secrets -n as-ace | grep ibm-cr-pull-secret |  awk -F' ' '{print $1 }')
+        PULL_SECRET=$(oc get secrets -n $PROJECT | grep ibm-cr-pull-secret |  awk -F' ' '{print $1 }')
 
         # Update values.yaml based on user inputs
         sed "s/PULL_SECRET/$PULL_SECRET/g"              ./values-copy.yaml  > ./values-copy-1.yaml
@@ -147,4 +151,5 @@ spec:
         echo
         helm init --client-only
         helm repo update
-        helm install --tls --repo https://raw.githubusercontent.com/IBM/charts/master/repo/entitled/ --name inventory-tester ibm-ace-server-icp4i-prod --debug -f values.yaml
+        helm upgrade --install --tls inventory-tester ibm-ace-server-icp4i-prod --debug --repo https://raw.githubusercontent.com/IBM/charts/master/repo/entitled/ -f values.yaml
+        #helm install --tls --repo https://raw.githubusercontent.com/IBM/charts/master/repo/entitled/ --name inventory-tester ibm-ace-server-icp4i-prod --debug -f values.yaml

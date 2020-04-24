@@ -52,7 +52,7 @@ Previous releases are available from [here](https://storage.googleapis.com/tekto
   oc new-project tekton-pipelines
 
   # Install v0.5.3 of Tekton Dashboard as this is compatible with Kubernetes clusters < 1.15.0
-  kubectl apply --filename kubectl apply --filename https://github.com/tektoncd/dashboard/previous/v0.5.3/openshift-tekton-dashboard-release.yaml --validate=false
+  kubectl apply --filename https://github.com/tektoncd/dashboard/releases/download/v0.5.3/openshift-tekton-dashboard-release.yaml  --validate=false
 
   # Retrieve the Tekton Dashboard Route
   oc get route -n tekton-pipelines
@@ -176,7 +176,7 @@ Params:
   production: Specifies if the deployment is production-like with High Availability enabled. It is set to false by default.
 Service Account: pipeline
 ```
-3. Click on the link to the newly executed PipelineRun and monitor the status.  You can also run `oc get pods -w` in the <project> to view the status of the pods. 
+3. Click on the link to the newly executed PipelineRun and monitor the status.  You can also run `oc get pods -w` in the <project> to view the status of the pods.
 
 
 ## Configure Tekton Github Webhook:

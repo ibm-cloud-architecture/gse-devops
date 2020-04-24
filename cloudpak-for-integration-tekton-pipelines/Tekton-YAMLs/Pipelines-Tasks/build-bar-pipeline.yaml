@@ -7,10 +7,11 @@ spec:
     - name: project
       description: Specify the name of the project being built.
       default: inventory_asuh
+      type: string
     - name: buildversion
       description: Docker image version for the BAR file
       default: ""
-      
+      type: string
   resources:
     - name: source
       type: git

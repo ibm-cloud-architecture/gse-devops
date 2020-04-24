@@ -11,12 +11,14 @@ spec:
     - name: integrationComponent
       default: integration/tracing
       description: The integration component that needs to be uninstalled.
+      type: string
     - name: project
       description: Specify the name of the project being built.
+      type: string
     - name: env
       default: "dev"
       description: Specfiy the current environment. It is used in computing the Helm release name.
-      
+      type: string
   steps:
   - name: uninstall-instance
     image: docker.io/rsundara/cp4i-setup
@@ -50,10 +52,10 @@ spec:
             name: common-settings
             key: fileStorage
       - name: ACE_PROJECT
-        value: $(inputs.params.project) 
+        value: $(inputs.params.project)
       - name: ENV
-        value: $(inputs.params.env) 
-            
+        value: $(inputs.params.env)
+
     command: ["/bin/sh"]
     args:
       - -c
@@ -65,29 +67,29 @@ spec:
         echo Project        : $ACE_PROJECT;
         echo Environment    : $ENV;
         echo File  Storage  : $STORAGE_FILE;
-        
-        
+
+
         cd $INTEGRATION_COMPONENT;
         echo "Running uninstall.sh";
         # sh uninstall.sh;
 
         RELEASE=ace-server-cp4iivt-dev
         if [ ! -z "$ACE_PROJECT" ] & [ ! -z "$ENV" ] ; then
-          RELEASE=ace-server-$ACE_PROJECT-$ENV; 
+          RELEASE=ace-server-$ACE_PROJECT-$ENV;
         fi;
 
         helm delete $RELEASE --purge --tls
 
         # In case of IBM Cloud use ibmc-file-gold for the file storage
         FILE_STORAGE=nfs
-        if [ "$CLOUD_TYPE" = "ibmcloud" ]; then 
-          FILE_STORAGE="ibmc-file-gold"; 
+        if [ "$CLOUD_TYPE" = "ibmcloud" ]; then
+          FILE_STORAGE="ibmc-file-gold";
         fi;
-        if [ ! -z "$STORAGE_FILE" ]; then 
+        if [ ! -z "$STORAGE_FILE" ]; then
           FILE_STORAGE=$STORAGE_FILE
         fi;
-        if [ "FILE_STORAGE" = "nfs" ]; then 
-          oc delete -f pv.yaml; 
+        if [ "FILE_STORAGE" = "nfs" ]; then
+          oc delete -f pv.yaml;
         fi;
 
         echo "Uninstall of Ace Server is now complete"

@@ -7,22 +7,25 @@ spec:
     - name: project
       description: Specify the name of the project being built.
       default: inventory_asuh
+      type: string
     - name: buildversion
       description: Docker image version for the BAR file
       default: ""
+      type: string
     - name: env
       default: "dev"
       description: Specfiy the current environment. It is used in computing the Helm release name.
+      type: string
     - name: production
       default: "false"
       description: Specifies if the deployment is production-like with High Availability enabled. Default [false]
-      
+      type: string
   resources:
     - name: source
       type: git
     - name: image
       type: image
-      
+
   tasks:
   - name: install-ace-server
     taskRef:
