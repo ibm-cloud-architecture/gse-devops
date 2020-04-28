@@ -200,7 +200,7 @@ Fork this repository https://github.com/ibm-cloud-architecture/devops-demo-kaban
 
 Take a look at the folder `pipelines/incubator`. This is where your pipelines exist, you can either update or modify these pipelines for your own custom needs. If you decide to add your own pipelines, use the `sample-template-structure` folder.
 
-We will be using a script to automate a few steps go to the root of the repository and run `./run.sh`
+We will be using a script to automate a few steps. Go to the root of the repository and run `./run.sh`
 ``` bash
     ===========================================================================
 
@@ -219,7 +219,7 @@ We will be using a script to automate a few steps go to the root of the reposito
 
 ```
 
-We will need to zip the pipelines into a tar file in which and upload it to a release but before that we need to create a release. Type `1` onto the terminal and you should see the following output: 
+We will need to zip the pipelines into a tar file and generate a sha256 for each Tekton type and upload this zip file to a release. Type `1` onto the terminal to generate your zip file you should see the following output: 
 
     .
     .
