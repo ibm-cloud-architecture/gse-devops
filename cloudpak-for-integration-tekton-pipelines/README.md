@@ -348,6 +348,24 @@ Edit the $ORG, $REPO_NAME and $RELEASE_VERSION and also generate the sha256 by r
 ```
 
 Add this to the Kabanero custom resource.
+Refresh your tekton webpage and you should see your new pipelines added.
+
+If you don't see your pipelines or some are missing run
+
+``` bash
+oc get pods | grep "kabanero"
+
+    kabanero-cli-6bd6bcd794-cggr8                                     1/1       Running            0          6d2h
+    kabanero-operator-5fb946d758-7h6n5                                1/1       Running            0          6d2h
+    kabanero-operator-admission-webhook-6b9d4d777f-77fhb              1/1       Running            0          6d23h
+    kabanero-operator-collection-controller-5bfcb8889d-84pmc          1/1       Running            0          6d2h
+    kabanero-operator-stack-controller-c7bcfdf96-7pnsz                1/1       Running            0          6d2h
+
+oc logs kabanero-operator-stack-controller-c7bcfdf96-7pnsz
+.
+.
+.
+```
 
 You can also watch the script in action https://asciinema.org/a/315675
 
