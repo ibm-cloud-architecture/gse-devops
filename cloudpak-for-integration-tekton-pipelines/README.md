@@ -178,6 +178,11 @@ Service Account: pipeline
 ```
 3. Click on the link to the newly executed PipelineRun and monitor the status.  You can also run `oc get pods -w` in the <project> to view the status of the pods.
 
+##Pushing to APIC
+1. Set the variables: json_link(link to json file in ace server), server(url to the cluster), realm(see the docs for different options but default should be "admin/default-idp-1"), and spaces(list of urls can be called with "apic spaces:list").
+2. Docker image is set to run 4 different apic commands which are apic login, apic config set for spaces, apic create product, and apic publish product.
+
+Warning: Currently, this section is failing as a simple json to yaml conversion is failing with the apic publish command for two reasons. The scheme default is currently set to http when it should be https and there are api calls not included in the multipart 'openapi' request payload. 
 
 ## Configure Tekton Github Webhook:
 TBD
