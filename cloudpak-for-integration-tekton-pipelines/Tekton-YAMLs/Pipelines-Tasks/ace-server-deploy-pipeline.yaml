@@ -21,7 +21,7 @@ spec:
       description: Specifies if the deployment is production-like with High Availability enabled. Default [false]
       type: string
     - name: namespace
-      default: ""
+      default: "ace"
       description: Specify the namespace you want the pipeline to run in.
       type: string
   resources:
