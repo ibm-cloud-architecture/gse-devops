@@ -7,7 +7,6 @@ spec:
     params:
     - name: project
       description: Specify the name of the project being built.
-      default: inventory_asuh
       type: string
     resources:
     - name: source
