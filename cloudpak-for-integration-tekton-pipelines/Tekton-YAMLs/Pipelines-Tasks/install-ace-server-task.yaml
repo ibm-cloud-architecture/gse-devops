@@ -30,6 +30,9 @@ spec:
       description: Docker image version for the BAR file
       default: ""
       type: string
+    - name: namespace
+      description: Specify the namespace you want the pipeline to run in.
+      type: string
   steps:
   - name: install-instance
     image: docker.io/rsundara/cp4i-setup
@@ -75,6 +78,8 @@ spec:
         value: "$(inputs.resources.image.url):$(inputs.params.buildversion)"
       - name: ACE_PROJECT
         value: $(inputs.params.project)
+      - name: NAMESPACE
+        value: $(inputs.params.namespace)
 
     command: ["/bin/sh"]
     args:
@@ -85,6 +90,7 @@ spec:
         echo Component      : $INTEGRATION_COMPONENT;
         echo Cloud type     : $CLOUD_TYPE;
         echo Project        : $ACE_PROJECT;
+        echo Namespace      : $NAMESPACE
         echo Environment    : $ENV;
         echo Offline        : $OFFLINE_INSTALL;
         echo Image          : $IMAGE;
@@ -94,8 +100,7 @@ spec:
         # cd $INTEGRATION_COMPONENT;
         echo "Running setup"
 
-        PROJECT=ace
-        oc project $PROJECT
+        oc project $NAMESPACE
 
         echo "Setup of Ace Dashboard is now complete"
         echo
@@ -139,7 +144,7 @@ spec:
 
 
         TRACE_ENABLED=true
-        PULL_SECRET=$(oc get secrets -n $PROJECT | grep ibm-cr-pull-secret |  awk -F' ' '{print $1 }')
+        PULL_SECRET=$(oc get secrets -n $NAMESPACE | grep ibm-cr-pull-secret |  awk -F' ' '{print $1 }')
 
         # Update values.yaml based on user inputs
         sed "s/PULL_SECRET/$PULL_SECRET/g"              ./values-copy.yaml  > ./values-copy-1.yaml
