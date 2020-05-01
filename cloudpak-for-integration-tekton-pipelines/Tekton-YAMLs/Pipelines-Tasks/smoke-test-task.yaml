@@ -1,0 +1,48 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  name: smoke-tests
+spec:
+  inputs:
+    resources:
+    - name: source
+      type: git
+    - name: image
+      type: image
+  params:
+    - name: project
+      description: Specify the name of the project being built.
+      type: string
+    - name: namespace
+      description: Specify the namespace you want the pipeline to run in.
+      type: string
+    - default: googlefu/apic_compiler:v2-amd64
+      name: tools-image
+      type: string
+  steps: 
+    - name: Health Checks
+      env:
+        - name: project
+          value: $(inputs.params.project)
+        - name: namespace
+          value: $(inputs.params.namespace)
+      image: $(inputs.params.tools-image)
+      command: ["/bin/sh"]
+      args:
+        - -c
+        - |
+          set e
+          pwd
+          oc version
+          oc get pods
+          oc projects
+          project-verb=${$project}-http
+
+          base_url=$(oc get routes | grep -w $project-verb | cut -f5 -d ' ')
+          total_url=${base_url}/micro/inventory
+
+          if (( $(curl -o /dev/null --silent --head --write-out "%{http_code}" $total_url) != 200 ))
+          then
+            printf "Server is not serving json properly"
+            exit 1
+          fi
