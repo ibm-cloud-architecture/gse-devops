@@ -156,5 +156,5 @@ spec:
         echo
         helm init --client-only
         helm repo update
-        helm upgrade --install --tls inventory-tester ibm-ace-server-icp4i-prod --debug --repo https://raw.githubusercontent.com/IBM/charts/master/repo/entitled/ -f values.yaml
+        helm upgrade --install --tls $ACE_PROJECT ibm-ace-server-icp4i-prod --debug --repo https://raw.githubusercontent.com/IBM/charts/master/repo/entitled/ -f values.yaml
         #helm install --tls --repo https://raw.githubusercontent.com/IBM/charts/master/repo/entitled/ --name inventory-tester ibm-ace-server-icp4i-prod --debug -f values.yaml

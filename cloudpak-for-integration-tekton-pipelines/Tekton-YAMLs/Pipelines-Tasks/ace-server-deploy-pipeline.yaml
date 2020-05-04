@@ -24,6 +24,9 @@ spec:
       default: "ace"
       description: Specify the namespace you want the pipeline to run in.
       type: string
+    - name: pipeline-name
+      description: Name of the pipeline for the health check
+      default: "ace-server-deploy-apic"
   resources:
     - name: source
       type: git
@@ -81,3 +84,15 @@ spec:
         resource: image
     runAfter:
     - build-image
+  - name: health-check
+    taskRef:
+      name: smoke-tests
+    params:
+      - name: project
+        value: $(params.project)
+      - name: namespace
+        value: $(params.namespace)
+      - name: pipeline-name
+        value: $(params.pipeline-name)
+    runAfter:
+      - install-ace-server
