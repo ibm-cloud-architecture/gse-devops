@@ -5,11 +5,9 @@ metadata:
 spec:
   inputs:
     resources:
-    - name: source
-      type: git
     - name: image
       type: image
-  params:
+    params:
     - name: project
       description: Specify the name of the project being built.
       type: string
@@ -20,7 +18,7 @@ spec:
       name: tools-image
       type: string
   steps: 
-    - name: Health Checks
+    - name: Health-Checks
       env:
         - name: project
           value: $(inputs.params.project)
@@ -33,6 +31,7 @@ spec:
         - |
           set e
           pwd
+          oc project $namespace
           oc version
           oc get pods
           oc projects
@@ -40,6 +39,18 @@ spec:
 
           base_url=$(oc get routes | grep -w $project-verb | cut -f5 -d ' ')
           total_url=${base_url}/micro/inventory
+          deployment_name=$(oc get deployments | grep $project | cut -f1 -d ' ')
+          status="$(oc rollout status deployment "$deployment_name")"
+          pass='successfully rolled out'
+
+          if [[ "$status" == *"$pass"* ]]
+          then
+            echo "Pods are deployed"
+          else
+            echo "Pods failed to deploy."
+            exit 1
+          fi
+
 
           if (( $(curl -o /dev/null --silent --head --write-out "%{http_code}" $total_url) != 200 ))
           then

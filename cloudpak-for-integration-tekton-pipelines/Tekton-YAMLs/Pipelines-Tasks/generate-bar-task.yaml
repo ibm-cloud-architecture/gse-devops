@@ -40,6 +40,7 @@ spec:
         echo Compile completed
         echo "Running checkin"
 
+        #This section is for pushin to git
         # git config core.sshCommand "ssh -i /root/.ssh/id_rsa_example -F /dev/null"
         git config --global user.name "user"
         git config --global user.email user@ibm.com
@@ -48,5 +49,8 @@ spec:
         git commit -m "Enable CP4I ACE Server CI/CD"
         git status
         git push origin master
+
+        #This ssection is for Artifactory
+        #TBD
 
         echo Check-in completed
