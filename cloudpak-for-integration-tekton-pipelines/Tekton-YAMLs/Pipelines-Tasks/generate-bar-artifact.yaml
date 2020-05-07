@@ -1,0 +1,82 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  name: generate-bar-artifactory
+spec:
+  inputs:
+    params:
+    - name: project
+      description: Specify the name of the project being built.
+      type: string
+    - name: buildversion
+      description: Docker image version for the BAR file
+      type: string
+    - name: api_key
+      default: ""
+      description: Api Key to access artifactory repo
+    - name: artifactory_repo_path
+      default: ""
+      description: Create or input the complete path to your artifact
+    - name: artifact_name
+      default: ""
+      description: Name of the artifact
+    resources:
+    - name: source
+      type: git
+
+  steps:
+  - name: compile
+    image: docker.io/rsundara/ace-build
+    workingdir: /workspace/source
+    env:
+      - name: PROJECT
+        value: $(inputs.params.project)
+      - name: buildversion
+        value: $(inputs.params.buildversion)
+      - name: api_key
+        value: $(inputs.params.api_key)
+      - name: artifactory_repo_path
+        value: $(inputs.params.artifactory_repo_path)
+      - name: artifact_name
+        value: $(inputs.params.artifact_name)
+
+    command: ["/bin/sh"]
+    args:
+      - -c
+      - |
+        set -eu;
+        echo Project : $PROJECT;
+        echo "Running compile";
+
+        #Used for debugging with mqsicreatebar
+        /usr/bin/Xvfb :100 &
+        export DISPLAY=:100
+
+        cd workspace
+        bar_location=./workspace/${PROJECT}/gen/${PROJECT}.bar
+        echo "Generating the BAR file in the location" $bar_location
+
+        mqsicreatebar -data . -b ./${PROJECT}/gen/${PROJECT}.bar -a ${PROJECT}
+
+        echo Compile completed
+        echo "Running checkin"
+
+        #This section is for pushin to git
+        # git config core.sshCommand "ssh -i /root/.ssh/id_rsa_example -F /dev/null"
+        # git config --global user.name "user"
+        # git config --global user.email user@ibm.com
+
+        # git add .
+        # git commit -m "Enable CP4I ACE Server CI/CD"
+        # git status
+        # git push origin master
+
+        #This ssection is for Artifactory
+        # CHECKSUM=$(shasum -a 1 $bar_location | awk '{ print $1 }')
+        full_path=$PWD/${PROJECT}/gen/${PROJECT}.bar
+        curl -H "X-JFrog-Art-Api:$api_key" -X PUT "$artifactory_repo_path/$artifact_name-$buildversion.bar" -T $full_path
+
+        echo Check-in completed
+
+        #copying bar to workspace pvc folder
+        # cp $full_path /workspace/barfile
