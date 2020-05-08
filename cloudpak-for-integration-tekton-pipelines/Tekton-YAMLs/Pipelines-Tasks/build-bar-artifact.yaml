@@ -1,0 +1,93 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  name: build-bar-artifactory
+spec:
+  inputs:
+    params:
+    - name: BUILDER_IMAGE
+      description: The location of the buildah builder image.
+      default: quay.io/buildah/stable:v1.11.0
+      type: string
+    - name: CONTEXT
+      description: Path to the directory to use as context.
+      default: "."
+      type: string
+    - name: TLSVERIFY
+      description: Verify the TLS on the registry endpoint (for push/pull to a non-TLS registry)
+      default: "false"
+      type: string
+    - name: buildversion
+      description: Docker image version for the BAR file
+      default: ""
+      type: string
+    - name: dockerfileLocation
+      description: Path to the Dockerfile to build.
+      default: "./Dockerfile"
+      type: string
+    - name: project
+      description: Specify the name of the project being built.
+      default: ""
+    - name: api_key
+      default: ""
+      description: Api Key to access artifactory repo
+    - name: artifactory_repo_path
+      default: ""
+      description: Create or input the path to your artifact
+    - name: artifact_name
+      default: ""
+      description: Name of the artifact
+    resources:
+    - name: source
+      type: git
+
+  outputs:
+    resources:
+    - name: image
+      type: image
+
+  steps:
+  - name: build
+    image: $(inputs.params.BUILDER_IMAGE)
+    workingDir: /workspace/source
+    volumeMounts:
+    - name: varlibcontainers
+      mountPath: /var/lib/containers
+    securityContext:
+      runAsUser: 0
+      privileged: true
+    env:
+      - name: PROJECT
+        value: $(inputs.params.project)
+      - name: api_key
+        value: $(inputs.params.api_key)
+      - name: artifactory_repo_path
+        value: $(inputs.params.artifactory_repo_path)
+      - name: artifact_name
+        value: $(inputs.params.artifact_name)
+    command: ["/bin/sh"]
+    args:
+    - -c
+    - |
+      set -eu;
+      bar_location=./workspace/${PROJECT}/gen/${PROJECT}.bar
+      rm $bar_location
+      curl -H "X-JFrog-Art-Api:$api_key" -X GET "$artifactory_repo_path/$artifact_name-$(inputs.params.buildversion).bar" --output temp.bar
+      ls -la
+      mv temp.bar /workspace/source/workspace/${PROJECT}/gen/${PROJECT}.bar
+      buildah bud --tls-verify=$(inputs.params.TLSVERIFY) --layers -f $(inputs.params.dockerfileLocation) -t $(outputs.resources.image.url):$(inputs.params.buildversion)-amd64 $(inputs.params.CONTEXT)
+
+  - name: push
+    image: $(inputs.params.BUILDER_IMAGE)
+    workingDir: /workspace/source
+    command: ['buildah', 'push', '--tls-verify=$(inputs.params.TLSVERIFY)', '$(outputs.resources.image.url):$(inputs.params.buildversion)-amd64', 'docker://$(outputs.resources.image.url):$(inputs.params.buildversion)-amd64']
+    volumeMounts:
+    - name: varlibcontainers
+      mountPath: /var/lib/containers
+    securityContext:
+      runAsUser: 0
+      privileged: true
+
+  volumes:
+  - name: varlibcontainers
+    emptyDir: {}
