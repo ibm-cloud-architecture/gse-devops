@@ -1,0 +1,118 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Pipeline
+metadata:
+  name: ace-server-deploy-artifactory
+spec:
+  params:
+    - name: project
+      description: Specify the name of the project being built.
+      default: inventory_asuh
+    - name: buildversion
+      description: Docker image version for the BAR file
+      default: ""
+    - name: env
+      default: "dev"
+      description: Specfiy the current environment. It is used in computing the Helm release name.
+    - name: production
+      default: "false"
+      description: Specifies if the deployment is production-like with High Availability enabled. Default [false]
+    - name: namespace
+      default: "as-ace"
+      description: Specify the namespace you want the pipeline to run in.
+    - name: api_key
+      default: ""
+      description: Api Key to access artifactory repo
+    - name: artifactory_repo_path
+      default: ""
+      description: Create or input the complete path to your artifact
+    - name: artifact_name
+      default: ""
+      description: Name of the artifact
+  resources:
+    - name: source
+      type: git
+    - name: image
+      type: image
+  tasks:
+  - name: generate-bar
+    resources:
+      inputs:
+      - name: source
+        resource: source
+    params:
+      - name: project
+        value: $(params.project)
+      - name: buildversion
+        value: $(params.buildversion)
+      - name: api_key
+        value: $(params.api_key)
+      - name: artifactory_repo_path
+        value: $(params.artifactory_repo_path)
+      - name: artifact_name
+        value: $(params.artifact_name)
+    taskRef:
+      name: generate-bar-artifactory
+
+  - name: build-image
+    resources:
+      inputs:
+      - name: source
+        resource: source
+      outputs:
+      - name: image
+        resource: image
+    params:
+      - name: buildversion
+        value: $(params.buildversion)
+      - name: dockerfileLocation
+        value: ./workspace/$(params.project)/Dockerfile
+      - name: project
+        value: $(params.project)
+      - name: api_key
+        value: $(params.api_key)
+      - name: artifactory_repo_path
+        value: $(params.artifactory_repo_path)
+      - name: artifact_name
+        value: $(params.artifact_name)
+    taskRef:
+      name: build-bar-artifactory
+    runAfter:
+    - generate-bar
+
+  - name: install-ace-server
+    taskRef:
+      name: install-ace-server
+    params:
+    - name: production
+      value: $(params.production)
+    - name: env
+      value: $(params.env)
+    - name: integrationComponent
+      value: ace-server
+    - name: project
+      value: $(params.project)
+    - name: buildversion
+      value: $(params.buildversion)
+    resources:
+      inputs:
+      - name: source
+        resource: source
+      - name: image
+        resource: image
+    runAfter:
+    - build-image
+
+  # - name: health-check
+  #   taskRef:
+  #     name: smoke-tests
+  #   params:
+  #     - name: project
+  #       value: $(params.project)
+  #     - name: namespace
+  #       value: $(params.namespace)
+  #   resources:
+  #     inputs:
+  #     - name: image
+  #       resource: image
+  #   runAfter:
+  #   - install-ace-server

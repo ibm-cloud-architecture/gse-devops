@@ -47,7 +47,7 @@ spec:
       type: image
 
   steps:
-  - name: build
+  - name: build-and-push
     image: $(inputs.params.BUILDER_IMAGE)
     workingDir: /workspace/source
     volumeMounts:
@@ -71,22 +71,32 @@ spec:
     - |
       set -eu;
       bar_location=./workspace/${PROJECT}/gen/${PROJECT}.bar
-      rm $bar_location
+      # rm $bar_location
       curl -H "X-JFrog-Art-Api:$api_key" -X GET "$artifactory_repo_path/$artifact_name-$(inputs.params.buildversion).bar" --output temp.bar
-      ls -la
       mv temp.bar /workspace/source/workspace/${PROJECT}/gen/${PROJECT}.bar
-      buildah bud --tls-verify=$(inputs.params.TLSVERIFY) --layers -f $(inputs.params.dockerfileLocation) -t $(outputs.resources.image.url):$(inputs.params.buildversion)-amd64 $(inputs.params.CONTEXT)
-
-  - name: push
-    image: $(inputs.params.BUILDER_IMAGE)
-    workingDir: /workspace/source
-    command: ['buildah', 'push', '--tls-verify=$(inputs.params.TLSVERIFY)', '$(outputs.resources.image.url):$(inputs.params.buildversion)-amd64', 'docker://$(outputs.resources.image.url):$(inputs.params.buildversion)-amd64']
-    volumeMounts:
-    - name: varlibcontainers
-      mountPath: /var/lib/containers
-    securityContext:
-      runAsUser: 0
-      privileged: true
+      # buildah bud --tls-verify=$(inputs.params.TLSVERIFY) --layers -f $(inputs.params.dockerfileLocation) -t $(outputs.resources.image.url):$(inputs.params.buildversion)-amd64 $(inputs.params.CONTEXT)
+      printf "Running get image source\n"
+      sourceimage=$(buildah from ibmcom/ace:latest)
+      buildah config --env PROJECT=$PROJECT $sourceimage
+      printf "Making buildah image\n"
+      buildah run $sourceimage /bin/sh -c 'mkdir -p /home/aceuser/bars \
+      cp workspace/$PROJECT/gen/*.bar /home/aceuser/bars \
+      chown aceuser:aceuser /home/aceuser/bars \
+      ./ace_compile_bars.sh'
+      printf "Commiting image\n"
+      buildah commit $sourceimage $(outputs.resources.image.url):$(inputs.params.buildversion)-amd64
+      printf "Pushing image\n"
+      buildah push --tls-verify=$(inputs.params.TLSVERIFY) $(outputs.resources.image.url):$(inputs.params.buildversion)-amd64 docker://$(outputs.resources.image.url):$(inputs.params.buildversion)-amd64
+  # - name: push
+  #   image: $(inputs.params.BUILDER_IMAGE)
+  #   workingDir: /workspace/source
+  #   command: ['buildah', 'push', '--tls-verify=$(inputs.params.TLSVERIFY)', '$(outputs.resources.image.url):$(inputs.params.buildversion)-amd64', 'docker://$(outputs.resources.image.url):$(inputs.params.buildversion)-amd64']
+  #   volumeMounts:
+  #   - name: varlibcontainers
+  #     mountPath: /var/lib/containers
+  #   securityContext:
+  #     runAsUser: 0
+  #     privileged: true
 
   volumes:
   - name: varlibcontainers

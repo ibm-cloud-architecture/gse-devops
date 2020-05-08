@@ -18,7 +18,7 @@ spec:
       name: tools-image
       type: string
   steps: 
-    - name: Health-Checks
+    - name: health-checks
       env:
         - name: project
           value: $(inputs.params.project)
@@ -31,13 +31,10 @@ spec:
         - |
           set e
           pwd
-          oc project $namespace
-          oc version
-          oc get pods
-          oc projects
-          project-verb=${$project}-http
+          oc get routes
+          projectverb=$project-http
 
-          base_url=$(oc get routes | grep -w $project-verb | cut -f5 -d ' ')
+          base_url=$(oc get routes | grep -w $projectverb | cut -f5 -d ' ')
           total_url=${base_url}/micro/inventory
           deployment_name=$(oc get deployments | grep $project | cut -f1 -d ' ')
           status="$(oc rollout status deployment "$deployment_name")"
