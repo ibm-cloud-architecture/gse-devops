@@ -6,7 +6,7 @@ spec:
   params:
     - name: project
       description: Specify the name of the project being built.
-      default: inventory_asuh
+      default: ""
     - name: buildversion
       description: Docker image version for the BAR file
       default: ""
@@ -25,9 +25,6 @@ spec:
     - name: artifactory_repo_path
       default: ""
       description: Create or input the complete path to your artifact
-    - name: artifact_name
-      default: ""
-      description: Name of the artifact
   resources:
     - name: source
       type: git
@@ -48,8 +45,6 @@ spec:
         value: $(params.api_key)
       - name: artifactory_repo_path
         value: $(params.artifactory_repo_path)
-      - name: artifact_name
-        value: $(params.artifact_name)
     taskRef:
       name: generate-bar-artifactory
 
@@ -72,8 +67,6 @@ spec:
         value: $(params.api_key)
       - name: artifactory_repo_path
         value: $(params.artifactory_repo_path)
-      - name: artifact_name
-        value: $(params.artifact_name)
     taskRef:
       name: build-bar-artifactory
     runAfter:
