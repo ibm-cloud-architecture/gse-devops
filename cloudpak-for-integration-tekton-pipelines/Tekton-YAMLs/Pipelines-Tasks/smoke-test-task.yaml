@@ -14,7 +14,7 @@ spec:
     - name: namespace
       description: Specify the namespace you want the pipeline to run in.
       type: string
-    - default: googlefu/apic_compiler:v2-amd64
+    - default: googlefu/apic_compiler:v4-amd64
       name: tools-image
       type: string
   steps: 
@@ -25,32 +25,42 @@ spec:
         - name: namespace
           value: $(inputs.params.namespace)
       image: $(inputs.params.tools-image)
-      command: ["/bin/sh"]
+      command: ["/bin/bash"]
       args:
         - -c
         - |
-          set e
-          pwd
-          oc get routes
+          set -e
           projectverb=$project-http
 
           base_url=$(oc get routes | grep -w $projectverb | cut -f5 -d ' ')
           total_url=${base_url}/micro/inventory
           deployment_name=$(oc get deployments | grep $project | cut -f1 -d ' ')
-          status="$(oc rollout status deployment "$deployment_name")"
-          pass='successfully rolled out'
+          pass="successfully rolled out"
 
+          count=0
+          while :
+          do
+          status="$(oc rollout status deployment "$deployment_name" | tr -d \")"
           if [[ "$status" == *"$pass"* ]]
           then
-            echo "Pods are deployed"
-          else
-            echo "Pods failed to deploy."
+            printf "Pods are deployed.\n\n"
+            break
+          elif [ "$count" -eq "4" ]
+          then
+            printf "Pods failed to deploy after 3 minutes.\n\n"
             exit 1
+          else
+          printf "Trying again\n\n"
           fi
+          sleep 1m
+          count=$(($count + 1))
+          done
 
 
-          if (( $(curl -o /dev/null --silent --head --write-out "%{http_code}" $total_url) != 200 ))
+          if (( $(curl -o /dev/null --silent --head --write-out "%{http_code}" $total_url) != "200" ))
           then
             printf "Server is not serving json properly"
             exit 1
+          else
+          printf "Server is serving json properly."
           fi

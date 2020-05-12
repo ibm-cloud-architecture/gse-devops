@@ -95,17 +95,17 @@ spec:
     runAfter:
     - build-image
 
-  # - name: health-check
-  #   taskRef:
-  #     name: smoke-tests
-  #   params:
-  #     - name: project
-  #       value: $(params.project)
-  #     - name: namespace
-  #       value: $(params.namespace)
-  #   resources:
-  #     inputs:
-  #     - name: image
-  #       resource: image
-  #   runAfter:
-  #   - install-ace-server
+  - name: health-check
+    taskRef:
+      name: smoke-tests
+    params:
+      - name: project
+        value: $(params.project)
+      - name: namespace
+        value: $(params.namespace)
+    resources:
+      inputs:
+      - name: image
+        resource: image
+    runAfter:
+    - install-ace-server

@@ -59,6 +59,14 @@ Previous releases are available from [here](https://storage.googleapis.com/tekto
 ```
 ![Tekton Dashboard](../../static/imgs/openshift4x-tekton-dashboard.png)
 
+## Artifactory
+
+1. Install Artifactory via the Garage Cloud Native toolkit
+
+2. Artifactory is an optional route as we have two different pipelines that utilize either artifactory or git as a repo for the bar files. All the images are however sent to a private image repository.
+
+### Warning:
+In order to fully utilize the Artifactory API system, you will need the pro license. There are certain calls that are not enabled with the free version like creating a local repository. You will instead need to create the local repo via the gui. 
 
 ## Configure Namespace for ACE deployment
 1. Create a project for the ACE deployment
@@ -67,6 +75,10 @@ Previous releases are available from [here](https://storage.googleapis.com/tekto
 oc create new-project <project>
 ````
 2. Add Security Context Constraints (SCC) to the default service account
+
+3. Add Service Account permissions to default service account
+```
+oc policy add-role-to-user view system:serviceaccount:as-ace:default
 ```
 # Add SCC Policy
 oc adm policy add-scc-to-user anyuid system:serviceaccount:<project>:default
@@ -74,9 +86,9 @@ oc adm policy add-scc-to-user privileged system:serviceaccount:<project>:default
 ```
 
 ## Clone the required Git repositories
-1. Clone the repository containg the sample ACE Toolkit workspace:
+1. Clone the repository containing the sample ACE Toolkit workspace:
 ```
-git clone git@github.ibm.com:Andrew-Suh/workspace-trigger.git
+git clone git@github.com:ibm-cloud-architecture/devops-demo-sample-ace-project.git
 ```
 2. Clone the repository containing the sample Tekton yamls:
 ```
@@ -144,7 +156,7 @@ value: us.icr.io/<namespace>/<repository>:<tag>
 value: <Github repo URL>
 
 # For this tutorial, we will be using the following repoitory
-value: https://github.ibm.com/Andrew-Suh/workspace-trigger
+value: https://github.com/ibm-cloud-architecture/devops-demo-sample-ace-project
 ```
 3. Create the PipelineResources in the cluster:
 ```
@@ -176,6 +188,10 @@ Params:
   production: Specifies if the deployment is production-like with High Availability enabled. It is set to false by default.
 Service Account: pipeline
 ```
+
+### Warning: 
+When creating the project name, please use only lowercase letters and dashes only. Failure to do so will result in an unsuccessful deployment of the ace server. 
+
 3. Click on the link to the newly executed PipelineRun and monitor the status.  You can also run `oc get pods -w` in the <project> to view the status of the pods.
 
 ##Pushing to APIC
