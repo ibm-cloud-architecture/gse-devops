@@ -17,9 +17,6 @@ spec:
     - name: artifactory_repo_path
       default: ""
       description: Create or input the complete path to your artifact
-    - name: artifact_name
-      default: ""
-      description: Name of the artifact
     resources:
     - name: source
       type: git
@@ -38,7 +35,7 @@ spec:
       - name: artifactory_repo_path
         value: $(inputs.params.artifactory_repo_path)
       - name: artifact_name
-        value: $(inputs.params.artifact_name)
+        value: $(inputs.params.project)
 
     command: ["/bin/sh"]
     args:
