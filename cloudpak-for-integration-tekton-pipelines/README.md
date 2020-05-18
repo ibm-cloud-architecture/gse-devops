@@ -68,6 +68,37 @@ Previous releases are available from [here](https://storage.googleapis.com/tekto
 ### Warning:
 In order to fully utilize the Artifactory API system, you will need the pro license. There are certain calls that are not enabled with the free version like creating a local repository. You will instead need to create the local repo via the gui. 
 
+#### Creating a Local Repository
+
+1. *This procedure will follow the non pro license method as pro license holders can simply utilize Artifactory's API calls to make a local repo.*
+Click on the Welcome dropdown menu at the far top right of the Artifactory gui. 
+
+2. Click on the New Local Repository link in the menu.
+<img src="Images/Artifactory-menu.png" width="250">
+
+3. Click on the type of repo you will need. I will be using generic for this entire demo as file holding is what I need.
+<img src="Images/repo-type.png">
+
+4. Fill in the basic information for the repository. The Repository Key is simply the name of the repository and will be what is referenced in all the curl calls to this repo.
+<img src="Images/repo-info.png">
+
+5. Click on save and finish to publish the repo.
+
+## Curl calls to the repo
+
+*I will be covering the curl calls to put and get files into a generic repository*
+
+1. To put a file to the repository, you will need to decide an auth method to access your artifactory repo. You can use the basic auth method of your username and password or you can pass in a dedicated header with an API key. I will be using the dedicated header `X-JFrog-Art-Api`. You can also pass in shasums of the files being transfered with the `X-Checksum-Sha#` header.
+
+```
+        curl -H "X-JFrog-Art-Api:<api_key>" -X PUT "<artifactory_repo_path>/<artifact_name> -T <path_to_file>
+```
+
+2. To get a file from a repository, you will need a get call.
+```
+      curl -H "X-JFrog-Art-Api:<api_key>" -X GET "<artifactory_repo_path>/<artifact_name>" --output <name_the_file>
+```
+
 ## Configure Namespace for ACE deployment
 1. Create a project for the ACE deployment
 ```
@@ -187,8 +218,43 @@ Params:
   env: dev
   production: Specifies if the deployment is production-like with High Availability enabled. It is set to false by default.
 Service Account: pipeline
-```
 
+## Creating a workspace folder from IBM App Connect Enterprise
+
+1. Set up your base workspace folder at Enterprise startup
+<img src="Images/01-set-wrkspc-fldr.png" width="550">
+
+2. Create a new REST API
+<img src="Images/02-new-api.png" width="250">
+
+3. Set up your project name. See the warning below about naming convention.
+<img src="Images/03-set-prjt-name.png" width="450">
+
+4. Import the API via a json file. The one shown is from swagger.
+<img src="Images/04-set-json.png" width="550">
+
+5. Once the JSON is imported, click on the create subflow button.
+<img src="Images/05-set-subflows.png" width="750">
+
+6. Since we created this project with a JSON file, we can, in this step, invoke a rest operation based on the json file embedded in the project. 
+<img src="Images/06-ref-swagger2.png" width="750">
+
+7. This is where the embedded file should be kept. 
+<img src="Images/07-ref-swagger3.png" width="750">
+
+8. Once we select the embedded json, we select the action we want to invoke for the subflow. In this case, it is the get operation for the inventory.
+<img src="Images/08-select-action.png" width="750">
+
+9. Click on RESTRequest under the REST tab and drag it onto the main window. 
+<img src="Images/09-new-request.png" width="250">
+
+10. Connect the input to the input of the get action icon and connect the output tab of the action to the output.
+<img src="Images/10-connect-dots.png" width="650">
+
+11. For the action icon properties, set the Base URL Override to the base url set for the inventory.
+<img src="Images/11-url-override.png" width="650">
+
+```
 ### Warning: 
 When creating the project name, please use only lowercase letters and dashes only. Failure to do so will result in an unsuccessful deployment of the ace server. 
 
