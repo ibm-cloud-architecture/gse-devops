@@ -1,3 +1,13 @@
+# Configure OpenShift Pipeline for App Connect Enterprise Deployments (Work in progress)
+
+This [README](../../cloudpak-for-integration-tekton-pipelines/README.md) provides a working sample of a CICD pipeline involving the following steps:
+
+1. Compile and create a bar based on an ACE Toolkit project.
+2. Build an ACE-only server image containg the bar file and push it into the IBM Container Registry.
+3. Deploy the newly built image of the ACE-only server + bar into an OpenShift cluster.
+
+This tutorial uses the ACE pipeline created by our fellow GSE GSE colleagues in the Integration squad (https://github.ibm.com/rsundara/cp4i-ace-server).
+
 # Table of Contents
 [Configure OpenShift Pipeline](https://github.com/ibm-cloud-architecture/gse-devops/tree/master/cloudpak-for-integration-tekton-pipelines#configure-openshift-pipeline-for-app-connect-enterprise-deployments-work-in-progress)
 [Requirements](https://github.com/ibm-cloud-architecture/gse-devops/tree/master/cloudpak-for-integration-tekton-pipelines#requirements)
@@ -16,17 +26,6 @@
 [Validate webhook by pushing in a change to the web application](https://github.com/ibm-cloud-architecture/gse-devops/tree/master/cloudpak-for-integration-tekton-pipelines#validate-webhook-by-pushing-in-a-change-to-the-web-application)
 [Uninstall OpenShift Pipelines](https://github.com/ibm-cloud-architecture/gse-devops/tree/master/cloudpak-for-integration-tekton-pipelines#uninstall-openshift-pipelines)
 [Uninstall Tekton Components](https://github.com/ibm-cloud-architecture/gse-devops/tree/master/cloudpak-for-integration-tekton-pipelines#uninstall-tekton-components)
-
-
-# Configure OpenShift Pipeline for App Connect Enterprise Deployments (Work in progress)
-
-This [README](../../cloudpak-for-integration-tekton-pipelines/README.md) provides a working sample of a CICD pipeline involving the following steps:
-
-1. Compile and create a bar based on an ACE Toolkit project.
-2. Build an ACE-only server image containg the bar file and push it into the IBM Container Registry.
-3. Deploy the newly built image of the ACE-only server + bar into an OpenShift cluster.
-
-This tutorial uses the ACE pipeline created by our fellow GSE GSE colleagues in the Integration squad (https://github.ibm.com/rsundara/cp4i-ace-server).
 
 Reference links:
 - App Connect Enterprise Git Repo: https://github.com/ot4i/ace-docker
@@ -191,6 +190,11 @@ secrets:
 - name: pipeline-dockerxxxxxx
 - name: docker-secret
 - name: git-secret
+```
+
+6. Update the ARTIFACTORY_ENCRYPT in the `artifactory-access` secret with the proper base64 encoded bytestring.
+```
+ARTIFACTORY_ENCRYPT: <base64 encoded bytestring>
 ```
 
 Once you apply the secret yaml, you should see them when you invoke `oc get secrets`
