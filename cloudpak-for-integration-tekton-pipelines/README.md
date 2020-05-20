@@ -1,3 +1,22 @@
+# Table of Contents
+[Configure OpenShift Pipeline](https://github.com/ibm-cloud-architecture/gse-devops/tree/master/cloudpak-for-integration-tekton-pipelines#configure-openshift-pipeline-for-app-connect-enterprise-deployments-work-in-progress)
+[Requirements](https://github.com/ibm-cloud-architecture/gse-devops/tree/master/cloudpak-for-integration-tekton-pipelines#requirements)
+[Provision OpenShift 4.x cluster](https://github.com/ibm-cloud-architecture/gse-devops/tree/master/cloudpak-for-integration-tekton-pipelines#provision-openshift-4x-cluster)
+[Install OpenShift Pipeline Operator](https://github.com/ibm-cloud-architecture/gse-devops/tree/master/cloudpak-for-integration-tekton-pipelines#install-openshift-pipeline-operator)
+[Install Tekton Dashboard](https://github.com/ibm-cloud-architecture/gse-devops/tree/master/cloudpak-for-integration-tekton-pipelines#install-tekton-dashboard)
+[Artifactory](https://github.com/ibm-cloud-architecture/gse-devops/tree/master/cloudpak-for-integration-tekton-pipelines#artifactory)
+[Warning](https://github.com/ibm-cloud-architecture/gse-devops/tree/master/cloudpak-for-integration-tekton-pipelines#warning)
+[Configure Namespace for ACE deployment](https://github.com/ibm-cloud-architecture/gse-devops/tree/master/cloudpak-for-integration-tekton-pipelines#configure-namespace-for-ace-deployment)
+[Clone the required Git repositories](https://github.com/ibm-cloud-architecture/gse-devops/tree/master/cloudpak-for-integration-tekton-pipelines#clone-the-required-git-repositories)
+[Configure Secrets required by the pipeline](https://github.com/ibm-cloud-architecture/gse-devops/tree/master/cloudpak-for-integration-tekton-pipelines#configure-secrets-required-by-the-pipeline)
+[Configure Tekton PipelineResources](https://github.com/ibm-cloud-architecture/gse-devops/tree/master/cloudpak-for-integration-tekton-pipelines#configure-tekton-pipelineResources)
+[Create ACE Server pipeline](https://github.com/ibm-cloud-architecture/gse-devops/tree/master/cloudpak-for-integration-tekton-pipelines#create-aCE-server-pipeline)
+[Manually Trigger the ACE Tekton Pipeline from the Tekton dashboard](https://github.com/ibm-cloud-architecture/gse-devops/tree/master/cloudpak-for-integration-tekton-pipelines#manually-trigger-the-ace-tekton-pipeline-from-the-tekton-dashboard)
+[Configure Tekton Github Webhook](https://github.com/ibm-cloud-architecture/gse-devops/tree/master/cloudpak-for-integration-tekton-pipelines#configure-tekton-github-webhook)
+[Validate webhook by pushing in a change to the web application](https://github.com/ibm-cloud-architecture/gse-devops/tree/master/cloudpak-for-integration-tekton-pipelines#validate-webhook-by-pushing-in-a-change-to-the-web-application)
+[Uninstall OpenShift Pipelines](https://github.com/ibm-cloud-architecture/gse-devops/tree/master/cloudpak-for-integration-tekton-pipelines#uninstall-openshift-pipelines)
+[Uninstall Tekton Components](https://github.com/ibm-cloud-architecture/gse-devops/tree/master/cloudpak-for-integration-tekton-pipelines#uninstall-tekton-components)
+
 
 # Configure OpenShift Pipeline for App Connect Enterprise Deployments (Work in progress)
 
@@ -174,6 +193,9 @@ secrets:
 - name: git-secret
 ```
 
+Once you apply the secret yaml, you should see them when you invoke `oc get secrets`
+<img src="Images/secret-list.png" width="750">
+
 
 ## Configure Tekton PipelineResources
 The Tekton pipeline will require PipelineResources as input and output in order to execute.  For example, for the ACE server deployment pipeline, the input would be referencing a Git repository containing the ACE Toolkit workspace artifacts.  Similarly, one of the outputs expected when the pipeline is complete is an image of the ACE Server with the newly built BAR file.
@@ -188,7 +210,7 @@ value: us.icr.io/<namespace>/<repository>:<tag>
 ```
 value: <Github repo URL>
 
-# For this tutorial, we will be using the following repoitory
+# For this tutorial, we will be using the following repository
 value: https://github.com/ibm-cloud-architecture/devops-demo-sample-ace-project
 ```
 3. Create the PipelineResources in the cluster:
@@ -219,6 +241,11 @@ Params:
   buildversion: Tag of the image being built
   env: dev
   production: Specifies if the deployment is production-like with High Availability enabled. It is set to false by default.
+  namespace: Specify the namespace to deply to
+
+  #if using artifactory pipelines:
+  artifactory_repo_path: The repo url that Artifactory gives in the gui for the created local repository you want to upload to
+  artifact_name: Name of the artifact to upload and download from Artifactory
 Service Account: default
 ```
 <!-- ##Pushing to APIC
