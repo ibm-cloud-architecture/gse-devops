@@ -11,9 +11,6 @@ spec:
     - name: buildversion
       description: Docker image version for the BAR file
       type: string
-    - name: api_key
-      default: ""
-      description: Api Key to access artifactory repo
     - name: artifactory_repo_path
       default: ""
       description: Create or input the complete path to your artifact
@@ -31,7 +28,10 @@ spec:
       - name: buildversion
         value: $(inputs.params.buildversion)
       - name: api_key
-        value: $(inputs.params.api_key)
+        valueFrom:
+          secretKeyRef:
+            name: artifactory-access
+            key: ARTIFACTORY_ENCRYPT
       - name: artifactory_repo_path
         value: $(inputs.params.artifactory_repo_path)
       - name: artifact_name

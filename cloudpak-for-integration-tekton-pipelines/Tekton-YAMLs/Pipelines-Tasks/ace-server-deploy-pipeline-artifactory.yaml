@@ -19,9 +19,6 @@ spec:
     - name: namespace
       default: "as-ace"
       description: Specify the namespace you want the pipeline to run in.
-    - name: api_key
-      default: ""
-      description: Api Key to access artifactory repo
     - name: artifactory_repo_path
       default: ""
       description: Create or input the complete path to your artifact
@@ -41,8 +38,6 @@ spec:
         value: $(params.project)
       - name: buildversion
         value: $(params.buildversion)
-      - name: api_key
-        value: $(params.api_key)
       - name: artifactory_repo_path
         value: $(params.artifactory_repo_path)
     taskRef:
@@ -63,8 +58,6 @@ spec:
         value: ./workspace/$(params.project)/Dockerfile
       - name: project
         value: $(params.project)
-      - name: api_key
-        value: $(params.api_key)
       - name: artifactory_repo_path
         value: $(params.artifactory_repo_path)
     taskRef:

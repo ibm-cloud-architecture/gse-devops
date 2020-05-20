@@ -28,9 +28,6 @@ spec:
     - name: project
       description: Specify the name of the project being built.
       default: ""
-    - name: api_key
-      default: ""
-      description: Api Key to access artifactory repo
     - name: artifactory_repo_path
       default: ""
       description: Create or input the path to your artifact
@@ -57,7 +54,10 @@ spec:
       - name: PROJECT
         value: $(inputs.params.project)
       - name: api_key
-        value: $(inputs.params.api_key)
+        valueFrom:
+          secretKeyRef:
+            name: artifactory-access
+            key: ARTIFACTORY_ENCRYPT
       - name: artifactory_repo_path
         value: $(inputs.params.artifactory_repo_path)
       - name: artifact_name

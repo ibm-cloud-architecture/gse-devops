@@ -59,9 +59,9 @@ Previous releases are available from [here](https://storage.googleapis.com/tekto
 ```
 ![Tekton Dashboard](../../static/imgs/openshift4x-tekton-dashboard.png)
 
-## Artifactory
+# Artifactory
 
-1. Install Artifactory via the Garage Cloud Native toolkit
+1. Install Artifactory via the Garage Cloud Native toolkit. See [here](https://cloudnativetoolkit.dev/) for more info.
 
 2. Artifactory is an optional route as we have two different pipelines that utilize either artifactory or git as a repo for the bar files. All the images are however sent to a private image repository.
 
@@ -84,7 +84,7 @@ Click on the Welcome dropdown menu at the far top right of the Artifactory gui.
 
 5. Click on save and finish to publish the repo.
 
-## Curl calls to the repo
+#### Curl calls to the repo
 
 *I will be covering the curl calls to put and get files into a generic repository*
 
@@ -104,16 +104,18 @@ Click on the Welcome dropdown menu at the far top right of the Artifactory gui.
 ```
 # Create a new project
 oc create new-project <project>
-````
-2. Add Security Context Constraints (SCC) to the default service account
-
-3. Add Service Account permissions to default service account
 ```
-oc policy add-role-to-user view system:serviceaccount:as-ace:default
+2. Add Security Context Constraints (SCC) to the default service account
 ```
 # Add SCC Policy
 oc adm policy add-scc-to-user anyuid system:serviceaccount:<project>:default
 oc adm policy add-scc-to-user privileged system:serviceaccount:<project>:default
+```
+
+3. Add Service Account permissions to default service account
+```
+# Adding cluster view role to default service account
+oc policy add-role-to-user view system:serviceaccount:as-ace:default
 ```
 
 ## Clone the required Git repositories
@@ -217,55 +219,15 @@ Params:
   buildversion: Tag of the image being built
   env: dev
   production: Specifies if the deployment is production-like with High Availability enabled. It is set to false by default.
-Service Account: pipeline
-
-## Creating a workspace folder from IBM App Connect Enterprise
-
-1. Set up your base workspace folder at Enterprise startup
-<img src="Images/01-set-wrkspc-fldr.png" width="550">
-
-2. Create a new REST API
-<img src="Images/02-new-api.png" width="250">
-
-3. Set up your project name. See the warning below about naming convention.
-<img src="Images/03-set-prjt-name.png" width="450">
-
-4. Import the API via a json file. The one shown is from swagger.
-<img src="Images/04-set-json.png" width="550">
-
-5. Once the JSON is imported, click on the create subflow button.
-<img src="Images/05-set-subflows.png" width="750">
-
-6. Since we created this project with a JSON file, we can, in this step, invoke a rest operation based on the json file embedded in the project. 
-<img src="Images/06-ref-swagger2.png" width="750">
-
-7. This is where the embedded file should be kept. 
-<img src="Images/07-ref-swagger3.png" width="750">
-
-8. Once we select the embedded json, we select the action we want to invoke for the subflow. In this case, it is the get operation for the inventory.
-<img src="Images/08-select-action.png" width="750">
-
-9. Click on RESTRequest under the REST tab and drag it onto the main window. 
-<img src="Images/09-new-request.png" width="250">
-
-10. Connect the input to the input of the get action icon and connect the output tab of the action to the output.
-<img src="Images/10-connect-dots.png" width="650">
-
-11. For the action icon properties, set the Base URL Override to the base url set for the inventory.
-<img src="Images/11-url-override.png" width="650">
-
+Service Account: default
 ```
-### Warning: 
-When creating the project name, please use only lowercase letters and dashes only. Failure to do so will result in an unsuccessful deployment of the ace server. 
-
-3. Click on the link to the newly executed PipelineRun and monitor the status.  You can also run `oc get pods -w` in the <project> to view the status of the pods.
-
-##Pushing to APIC
+<!-- ##Pushing to APIC
 1. Set the variables: json_link(link to json file in ace server), server(url to the cluster), realm(see the docs for different options but default should be "admin/default-idp-1"), and spaces(list of urls can be called with "apic spaces:list").
 2. Docker image is set to run 4 different apic commands which are apic login, apic config set for spaces, apic create product, and apic publish product.
 
+```
 Warning: Currently, this section is failing as a simple json to yaml conversion is failing with the apic publish command for two reasons. The scheme default is currently set to http when it should be https and there are api calls not included in the multipart 'openapi' request payload. 
-
+``` -->
 ## Configure Tekton Github Webhook:
 TBD
 
