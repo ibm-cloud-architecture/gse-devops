@@ -1,4 +1,3 @@
-
 # Configure OpenShift Pipeline for App Connect Enterprise Deployments (Work in progress)
 
 This [README](../../cloudpak-for-integration-tekton-pipelines/README.md) provides a working sample of a CICD pipeline involving the following steps:
@@ -8,6 +7,25 @@ This [README](../../cloudpak-for-integration-tekton-pipelines/README.md) provide
 3. Deploy the newly built image of the ACE-only server + bar into an OpenShift cluster.
 
 This tutorial uses the ACE pipeline created by our fellow GSE GSE colleagues in the Integration squad (https://github.ibm.com/rsundara/cp4i-ace-server).
+
+# Table of Contents
+- [Configure OpenShift Pipeline](https://github.com/ibm-cloud-architecture/gse-devops/tree/master/cloudpak-for-integration-tekton-pipelines#configure-openshift-pipeline-for-app-connect-enterprise-deployments-work-in-progress)
+- [Requirements](https://github.com/ibm-cloud-architecture/gse-devops/tree/master/cloudpak-for-integration-tekton-pipelines#requirements)
+- [Provision OpenShift 4.x cluster](https://github.com/ibm-cloud-architecture/gse-devops/tree/master/cloudpak-for-integration-tekton-pipelines#provision-openshift-4x-cluster)
+- [Install OpenShift Pipeline Operator](https://github.com/ibm-cloud-architecture/gse-devops/tree/master/cloudpak-for-integration-tekton-pipelines#install-openshift-pipeline-operator)
+- [Install Tekton Dashboard](https://github.com/ibm-cloud-architecture/gse-devops/tree/master/cloudpak-for-integration-tekton-pipelines#install-tekton-dashboard)
+- [Artifactory](https://github.com/ibm-cloud-architecture/gse-devops/tree/master/cloudpak-for-integration-tekton-pipelines#artifactory)
+  - [Warning](https://github.com/ibm-cloud-architecture/gse-devops/tree/master/cloudpak-for-integration-tekton-pipelines#warning)
+- [Configure Namespace for ACE deployment](https://github.com/ibm-cloud-architecture/gse-devops/tree/master/cloudpak-for-integration-tekton-pipelines#configure-namespace-for-ace-deployment)
+- [Clone the required Git repositories](https://github.com/ibm-cloud-architecture/gse-devops/tree/master/cloudpak-for-integration-tekton-pipelines#clone-the-required-git-repositories)
+- [Configure Secrets required by the pipeline](https://github.com/ibm-cloud-architecture/gse-devops/tree/master/cloudpak-for-integration-tekton-pipelines#configure-secrets-required-by-the-pipeline)
+- [Configure Tekton PipelineResources](https://github.com/ibm-cloud-architecture/gse-devops/tree/master/cloudpak-for-integration-tekton-pipelines#configure-tekton-pipelineResources)
+- [Create ACE Server pipeline](https://github.com/ibm-cloud-architecture/gse-devops/tree/master/cloudpak-for-integration-tekton-pipelines#create-aCE-server-pipeline)
+- [Manually Trigger the ACE Tekton Pipeline from the Tekton dashboard](https://github.com/ibm-cloud-architecture/gse-devops/tree/master/cloudpak-for-integration-tekton-pipelines#manually-trigger-the-ace-tekton-pipeline-from-the-tekton-dashboard)
+- [Configure Tekton Github Webhook](https://github.com/ibm-cloud-architecture/gse-devops/tree/master/cloudpak-for-integration-tekton-pipelines#configure-tekton-github-webhook)
+- [Validate webhook by pushing in a change to the web application](https://github.com/ibm-cloud-architecture/gse-devops/tree/master/cloudpak-for-integration-tekton-pipelines#validate-webhook-by-pushing-in-a-change-to-the-web-application)
+- [Uninstall OpenShift Pipelines](https://github.com/ibm-cloud-architecture/gse-devops/tree/master/cloudpak-for-integration-tekton-pipelines#uninstall-openshift-pipelines)
+- [Uninstall Tekton Components](https://github.com/ibm-cloud-architecture/gse-devops/tree/master/cloudpak-for-integration-tekton-pipelines#uninstall-tekton-components)
 
 Reference links:
 - App Connect Enterprise Git Repo: https://github.com/ot4i/ace-docker
@@ -59,30 +77,63 @@ Previous releases are available from [here](https://storage.googleapis.com/tekto
 ```
 ![Tekton Dashboard](../../static/imgs/openshift4x-tekton-dashboard.png)
 
-## Artifactory
+# Artifactory
 
-1. Install Artifactory via the Garage Cloud Native toolkit
+1. Install Artifactory via the Garage Cloud Native toolkit. See [here](https://cloudnativetoolkit.dev/) for more info.
 
 2. Artifactory is an optional route as we have two different pipelines that utilize either artifactory or git as a repo for the bar files. All the images are however sent to a private image repository.
 
 ### Warning:
 In order to fully utilize the Artifactory API system, you will need the pro license. There are certain calls that are not enabled with the free version like creating a local repository. You will instead need to create the local repo via the gui. 
 
+#### Creating a Local Repository
+
+1. *This procedure will follow the non pro license method as pro license holders can simply utilize Artifactory's API calls to make a local repo.*
+Click on the Welcome dropdown menu at the far top right of the Artifactory gui. 
+
+2. Click on the New Local Repository link in the menu.
+<img src="Images/Artifactory-menu.png" width="250">
+
+3. Click on the type of repo you will need. I will be using generic for this entire demo as file holding is what I need.
+<img src="Images/repo-type.png">
+
+4. Fill in the basic information for the repository. The Repository Key is simply the name of the repository and will be what is referenced in all the curl calls to this repo.
+<img src="Images/repo-info.png">
+
+5. Click on save and finish to publish the repo.
+
+#### Curl calls to the repo
+
+*I will be covering the curl calls to put and get files into a generic repository*
+
+1. To put a file to the repository, you will need to decide an auth method to access your artifactory repo. You can use the basic auth method of your username and password or you can pass in a dedicated header with an API key. I will be using the dedicated header `X-JFrog-Art-Api`. You can also pass in shasums of the files being transfered with the `X-Checksum-Sha#` header.
+
+```
+        curl -H "X-JFrog-Art-Api:<api_key>" -X PUT "<artifactory_repo_path>/<artifact_name> -T <path_to_file>
+```
+
+2. To get a file from a repository, you will need a get call.
+```
+      curl -H "X-JFrog-Art-Api:<api_key>" -X GET "<artifactory_repo_path>/<artifact_name>" --output <name_the_file>
+```
+
 ## Configure Namespace for ACE deployment
 1. Create a project for the ACE deployment
 ```
 # Create a new project
 oc create new-project <project>
-````
-2. Add Security Context Constraints (SCC) to the default service account
-
-3. Add Service Account permissions to default service account
 ```
-oc policy add-role-to-user view system:serviceaccount:as-ace:default
+2. Add Security Context Constraints (SCC) to the default service account
 ```
 # Add SCC Policy
 oc adm policy add-scc-to-user anyuid system:serviceaccount:<project>:default
 oc adm policy add-scc-to-user privileged system:serviceaccount:<project>:default
+```
+
+3. Add Service Account permissions to default service account
+```
+# Adding cluster view role to default service account
+oc policy add-role-to-user view system:serviceaccount:as-ace:default
 ```
 
 ## Clone the required Git repositories
@@ -141,6 +192,14 @@ secrets:
 - name: git-secret
 ```
 
+6. Update the ARTIFACTORY_ENCRYPT in the `artifactory-access` secret with the proper base64 encoded bytestring.
+```
+ARTIFACTORY_ENCRYPT: <base64 encoded bytestring>
+```
+
+Once you apply the secret yaml, you should see them when you invoke `oc get secrets`
+<img src="Images/secret-list.png" width="750">
+
 
 ## Configure Tekton PipelineResources
 The Tekton pipeline will require PipelineResources as input and output in order to execute.  For example, for the ACE server deployment pipeline, the input would be referencing a Git repository containing the ACE Toolkit workspace artifacts.  Similarly, one of the outputs expected when the pipeline is complete is an image of the ACE Server with the newly built BAR file.
@@ -155,7 +214,7 @@ value: us.icr.io/<namespace>/<repository>:<tag>
 ```
 value: <Github repo URL>
 
-# For this tutorial, we will be using the following repoitory
+# For this tutorial, we will be using the following repository
 value: https://github.com/ibm-cloud-architecture/devops-demo-sample-ace-project
 ```
 3. Create the PipelineResources in the cluster:
@@ -186,20 +245,20 @@ Params:
   buildversion: Tag of the image being built
   env: dev
   production: Specifies if the deployment is production-like with High Availability enabled. It is set to false by default.
-Service Account: pipeline
+  namespace: Specify the namespace to deply to
+
+  #if using artifactory pipelines:
+  artifactory_repo_path: The repo url that Artifactory gives in the gui for the created local repository you want to upload to
+  artifact_name: Name of the artifact to upload and download from Artifactory
+Service Account: default
 ```
-
-### Warning: 
-When creating the project name, please use only lowercase letters and dashes only. Failure to do so will result in an unsuccessful deployment of the ace server. 
-
-3. Click on the link to the newly executed PipelineRun and monitor the status.  You can also run `oc get pods -w` in the <project> to view the status of the pods.
-
-##Pushing to APIC
+<!-- ##Pushing to APIC
 1. Set the variables: json_link(link to json file in ace server), server(url to the cluster), realm(see the docs for different options but default should be "admin/default-idp-1"), and spaces(list of urls can be called with "apic spaces:list").
 2. Docker image is set to run 4 different apic commands which are apic login, apic config set for spaces, apic create product, and apic publish product.
 
+```
 Warning: Currently, this section is failing as a simple json to yaml conversion is failing with the apic publish command for two reasons. The scheme default is currently set to http when it should be https and there are api calls not included in the multipart 'openapi' request payload. 
-
+``` -->
 ## Configure Tekton Github Webhook:
 TBD
 
