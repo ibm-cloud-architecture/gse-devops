@@ -15,7 +15,7 @@ This tutorial uses the ACE pipeline created by our fellow GSE GSE colleagues in 
 - [Install OpenShift Pipeline Operator](https://github.com/ibm-cloud-architecture/gse-devops/tree/master/cloudpak-for-integration-tekton-pipelines#install-openshift-pipeline-operator)
 - [Install Tekton Dashboard](https://github.com/ibm-cloud-architecture/gse-devops/tree/master/cloudpak-for-integration-tekton-pipelines#install-tekton-dashboard)
 - [Artifactory](https://github.com/ibm-cloud-architecture/gse-devops/tree/master/cloudpak-for-integration-tekton-pipelines#artifactory)
-- [Warning](https://github.com/ibm-cloud-architecture/gse-devops/tree/master/cloudpak-for-integration-tekton-pipelines#warning)
+  - [Warning](https://github.com/ibm-cloud-architecture/gse-devops/tree/master/cloudpak-for-integration-tekton-pipelines#warning)
 - [Configure Namespace for ACE deployment](https://github.com/ibm-cloud-architecture/gse-devops/tree/master/cloudpak-for-integration-tekton-pipelines#configure-namespace-for-ace-deployment)
 - [Clone the required Git repositories](https://github.com/ibm-cloud-architecture/gse-devops/tree/master/cloudpak-for-integration-tekton-pipelines#clone-the-required-git-repositories)
 - [Configure Secrets required by the pipeline](https://github.com/ibm-cloud-architecture/gse-devops/tree/master/cloudpak-for-integration-tekton-pipelines#configure-secrets-required-by-the-pipeline)
