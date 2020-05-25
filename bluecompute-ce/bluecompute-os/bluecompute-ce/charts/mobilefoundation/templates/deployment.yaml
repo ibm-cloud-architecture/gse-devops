@@ -34,21 +34,33 @@ spec:
           - name : WLP_LOGGING_CONSOLE_SOURCE
             value: "message,trace,accessLog,ffdc"
           - name: RUNTIME_SVC_NAME
-            value: "storefront-mf"
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.name
           - name: ADMIN_HOST
-            value: "storefront-mf"
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.name
           - name: MFPF_SERVER_PROTOCOL
             value: "http"
           - name: MFPF_SERVER_PORT
             value: "9080"
           - name: ANALYTICS_SVC_NAME
-            value: "storefront-mf"
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.name
           - name: MFPF_ANALYTICS_PROTOCOL
             value: "http"
           - name: ANALYTICS_PORT
             value: "9080"
           - name: PUSH_SVC_NAME
-            value: "storefront-mf"
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.name
           - name: MFPF_PUSH_PROTOCOL
             value: "http"
           - name: PUSH_PORT
