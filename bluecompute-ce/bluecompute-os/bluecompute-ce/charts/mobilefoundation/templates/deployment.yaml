@@ -1,0 +1,91 @@
+##---
+# Source: 
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: storefront-mf
+  labels:
+    app: storefront-mf
+    chart: "mf-ce"
+    release: "bluecompute"
+    heritage: "Tiller"
+spec:
+  template:
+    metadata:
+      labels:
+        app: storefront-mf
+    spec:      
+      containers:
+      - name: storefront-mf
+        image: "ibmcom/ibm-mobilefoundation-ce:1.2.0"
+        imagePullPolicy: "IfNotPresent"
+        resources:
+          requests:
+            cpu: 1000m
+            memory: 1024Mi
+          limits:
+            cpu: 1000m
+            memory: 2048Mi
+        env:
+          - name: WLP_LOGGING_CONSOLE_FORMAT
+            value: "json"
+          - name: WLP_LOGGING_CONSOLE_LOGLEVEL
+            value: "info"
+          - name : WLP_LOGGING_CONSOLE_SOURCE
+            value: "message,trace,accessLog,ffdc"
+          - name: RUNTIME_SVC_NAME
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.name
+          - name: ADMIN_HOST
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.name
+          - name: MFPF_SERVER_PROTOCOL
+            value: "http"
+          - name: MFPF_SERVER_PORT
+            value: "9080"
+          - name: ANALYTICS_SVC_NAME
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.name
+          - name: MFPF_ANALYTICS_PROTOCOL
+            value: "http"
+          - name: ANALYTICS_PORT
+            value: "9080"
+          - name: PUSH_SVC_NAME
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.name
+          - name: MFPF_PUSH_PROTOCOL
+            value: "http"
+          - name: PUSH_PORT
+            value: "9080"
+          - name: MFPF_ANALYTICS_RECVR_HOST
+            value: "storefront-mf"
+        ports:
+          - containerPort: 9080
+          - containerPort: 9443
+          - containerPort: 9600
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 9080
+          initialDelaySeconds: 30
+          periodSeconds: 15
+          timeoutSeconds: 10
+          successThreshold: 1
+          failureThreshold: 10
+        livenessProbe:
+          tcpSocket:
+            port: 9080
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 10
+          successThreshold: 1
+          failureThreshold: 10
+      

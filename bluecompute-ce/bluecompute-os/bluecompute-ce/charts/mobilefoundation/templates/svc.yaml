@@ -1,0 +1,22 @@
+##---
+# Source: bluecompute-ce/charts/mysql/templates/svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: storefront-mf
+  labels:
+    app: storefront-mf
+    chart: "mf-ce"
+    release: "bluecompute"
+    heritage: "Tiller"
+  annotations:
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    protocol: TCP
+    port: 80
+    targetPort: 9080
+  selector:
+    app: storefront-mf
+
