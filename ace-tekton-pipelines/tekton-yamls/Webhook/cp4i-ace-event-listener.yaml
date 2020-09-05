@@ -1,0 +1,22 @@
+# This EL definition mimics the OpenShift Pipelines documentation sample:
+# https://docs.openshift.com/container-platform/4.4/pipelines/creating-applications-with-cicd-pipelines.html#adding-triggers_creating-applications-with-cicd-pipelines
+# This EL definition works with OpenShift Pipelines 0.11.3 and OpenShift-Pipelines-Triggers: v0.4.0
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: EventListener
+metadata:
+  name: cp4i-github-eventlistener
+spec:
+  serviceAccountName: pipeline
+  triggers:
+    - name: triggers-cp4i
+      interceptors:
+        - cel:
+            filter: >-
+              (header.match('X-GitHub-Event', 'pull_request') &&
+               body.action == 'closed' &&
+               body.pull_request.merged == true &&
+               body.pull_request.head.repo.name  == 'devops-demo-sample-ace-project')
+      bindings:
+        - name: sample-ace-project-build-and-deploy
+      template:
+        name: sample-ace-project-build-and-deploy

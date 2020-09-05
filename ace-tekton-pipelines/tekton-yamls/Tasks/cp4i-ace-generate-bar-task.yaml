@@ -1,0 +1,80 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: generate-bar
+spec:
+  workspaces:
+    - name: output
+      description: The git repo will be cloned onto the volume backing this workspace
+  params:
+  - description: Specify the name of the project being built.
+    name: project
+    type: string
+  - name: artifactoryRepo
+    type: string
+    description: Artifactory repository URL
+    default: "generic-local"
+  - default: "1.0.0"
+    description: Docker image version for the BAR file
+    name: buildversion
+    type: string
+  - name: gitUrl
+    type: string
+    description: Git repository url
+  - name: gitRevision
+    type: string
+    description: Git revision to check out
+    default: master
+  - name: DOCKERFILE
+    type: string
+    description: Path to the Dockerfile to build.
+    default: ./Dockerfile
+  - name: pathToContext
+    type: string
+    description: The path to the build context within the workspace
+    default: workspace
+  - name: pathToYamlFile
+    type: string
+    description: The path to the yaml file to deploy within the git source
+  - name: extraArgs
+    type: string
+    description: Extra args to the kaniko task command line
+    default: ""
+  - name: imageUrl
+    type: string
+    description: Image name including repository
+  - name: imageTag
+    type: string
+    description: Image tag
+    default: "latest"
+  - name: gitRepo
+    type: string
+    description: Name of the git repository
+  steps:
+  - args:
+    - -c
+    - |
+      set -eu;
+      echo Project : $(params.project);
+      echo "Running compile";
+
+      #Used for debugging with mqsicreatebar
+      /usr/bin/Xvfb :100 &
+      export DISPLAY=:100
+
+      cd $(workspaces.output.path)/$(params.pathToContext)
+      ls -la
+      echo "Generating the BAR file in the location" ./$(workspaces.output.path)/$(params.pathToContext)/$(params.project)/gen/$(params.project)-$(params.imageTag).bar
+
+      mqsicreatebar -data . -b ./$(params.project)/gen/$(params.project)-$(params.imageTag).bar -a $(params.project)
+
+      echo Compile completed
+      echo "Push the bar file to artifactory"
+      curl -u $(ARTIFACTORY_USER):$(ARTIFACTORY_PASSWORD) -T $(params.project)/gen/$(params.project)-$(params.imageTag).bar "$(ARTIFACTORY_URL)/artifactory/$(params.artifactoryRepo)/$(params.project)-$(params.imageTag).bar"
+    command:
+    - /bin/sh
+    envFrom:
+    - secretRef:
+        name: artifactory-credentials
+    image: docker.io/rsundara/ace-build
+    name: compile

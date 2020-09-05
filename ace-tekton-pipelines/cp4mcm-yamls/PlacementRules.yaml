@@ -1,0 +1,13 @@
+apiVersion: app.ibm.com/v1alpha1
+kind: PlacementRule
+metadata:
+  name: cp4i-qa
+  labels:
+    release: "cp4i-demo"
+spec:
+  clusterReplicas: 1
+  clusterConditions:
+    - type: OK
+  clusterLabels:
+    matchLabels:
+      environment: cp4i-qa

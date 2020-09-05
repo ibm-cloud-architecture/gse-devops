@@ -1,0 +1,54 @@
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerTemplate
+metadata:
+  name: sample-ace-project-build-and-deploy
+spec:
+  params:
+    - name: gitUrl
+      description: The git repository URL for the msad-integration build and deploy
+      default: https://github.com/ibm-cloud-architecture/devops-demo-sample-ace-project
+    - name: gitRevision
+      description: The git revision to build
+      default: master
+    - name: gitRepo
+      description: Name of the git repository
+    - name: serviceAccountName
+      description: The service account name to use to run the pipeline
+      default: pipeline
+    - name: imageContext
+      description: The image context root in the image registry where the image is stored
+      default: cp4i-gse-poc
+    - name: imageTag
+      description: The image tag
+      default: latest
+  resourcetemplates:
+    - apiVersion: tekton.dev/v1beta1
+      kind: PipelineRun
+      metadata:
+        generateName: sample-ace-project-pr-
+      spec:
+        serviceAccountName: $(params.serviceAccountName)
+        pipelineRef:
+          name: hc-sample-ace-pipleline
+        params:
+          - name: gitUrl
+            value: $(params.gitUrl)
+          - name: gitRevision
+            value: $(params.gitRevision)
+          - name: imageUrl
+            value: "us.icr.io/$(params.imageContext)/sample-ace-project"
+          - name: imageTag
+            value: $(params.imageTag)
+          - name: gitRepo
+            value: $(params.gitRepo)
+          - name: pathToYamlFile
+            value: "k8s-deployment/integrationserver.yaml"
+          - name: pathToContext
+            value: "workspace"
+          - name: extraArgs
+            value: --skip-tls-verify
+        timeout: "1h0m0s"
+        workspaces:
+          - name: git-source
+            persistentVolumeClaim:
+              claimName: workspace-pvc

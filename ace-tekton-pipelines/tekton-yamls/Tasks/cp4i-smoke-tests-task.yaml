@@ -1,0 +1,77 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: smoke-tests
+spec:
+  workspaces:
+    - name: output
+      description: The git repo will be cloned onto the volume backing this workspace
+  params:
+  - description: Specify the name of the project being built.
+    name: project
+    type: string
+  - default: googlefu/apic_compiler:v4-amd64
+    name: tools-image
+    type: string
+  - default: sample-ace-project-is
+    name: project-deployment
+    type: string
+  - default: sample-ace-project-http
+    name: project-route
+    type: string
+  steps:
+  - args:
+    - -c
+    - |
+      set -e
+      deployment_name=$(oc get deployments | grep $(params.project-deployment) | cut -f1 -d ' ')
+      pass="successfully rolled out"
+      count=0
+      while :
+      do
+      status="$(oc rollout status deployment "$deployment_name" | tr -d \")"
+      if [[ "$status" == *"$pass"* ]]
+      then
+        printf "Pods are deployed.\n\n"
+        sleep 2m
+        break
+      elif [ "$count" -eq "6" ]
+      then
+        printf "Pods failed to deploy after 5 minutes.\n\n"
+        exit 1
+      else
+      printf "Trying again\n\n"
+      fi
+      sleep 1m
+      count=$(($count + 1))
+      done
+    command:
+    - /bin/bash
+    env:
+    - name: project
+      value: $(params.project)
+    image: $(params.tools-image)
+    name: check-pods-deployed
+  - args:
+    - -c
+    - |
+      set -e
+      echo "Testing endpoint is returning a 200..."
+      base_url=$(oc get routes | grep -w $(params.project-route)  | awk '{print $2}')
+      total_url=$base_url/micro/inventory
+      echo $total_url
+      if [[ "$(curl -o /dev/null --silent --head --write-out "%{http_code}" $total_url)" != "200" ]]
+      then
+        printf "Server is not serving json properly"
+        exit 1
+      else
+      printf "Server is serving json properly.\n\n"
+      fi
+      echo "done"
+    command:
+    - /bin/bash
+    env:
+    - name: project
+      value: $(params.project)
+    image: $(params.tools-image)
+    name: check-returning-200

@@ -1,0 +1,18 @@
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerBinding
+metadata:
+  name: sample-ace-project-build-and-deploy
+spec:
+  params:
+  - name: gitUrl
+    value: $(body.repository.clone_url)
+  - name: gitRevision
+    value: $(body.pull_request.head.sha)
+  - name: imageContext
+    value: cp4i-gse-poc
+  - name: gitRepo
+    value: $(body.repository.name)
+  - name: serviceAccountName
+    value: pipeline
+  - name: imageTag
+    value: $(body.pull_request.head.sha)

@@ -1,0 +1,40 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: install-ace-server
+spec:
+  workspaces:
+    - name: output
+      description: The git repo will be cloned onto the volume backing this workspace
+  params:
+  - name: imageTag
+    type: string
+  - name: imageUrl
+    type: string
+  - default: k8s
+    description: The path to the yaml file to deploy within the git source
+    name: pathToYamlFile
+    type: string
+  steps:
+  - args:
+    - -c
+    - |
+      set -e
+      pwd
+      echo $(workspaces.output.path)/$(params.pathToYamlFile)/
+      echo $(params.imageUrl):$(params.imageTag)
+      ls -la $(workspaces.output.path)/$(params.pathToYamlFile)/
+      sed -i -e 's;__IMAGE__;$(params.imageUrl):$(params.imageTag);g' $(workspaces.output.path)/$(params.pathToYamlFile)/integrationserver.yaml
+    command:
+    - /bin/bash
+    image: node:12-stretch
+    name: set-integrationserver-yaml
+  - args:
+    - -c
+    - |
+      set -e
+      oc apply -f $(workspaces.output.path)/$(params.pathToYamlFile)/integrationserver.yaml
+    command:
+    - /bin/bash
+    image: googlefu/apic_compiler:v3-amd64
+    name: apply-integrationserver-yaml
