@@ -68,35 +68,35 @@ git clone git@github.com:ibm-cloud-architecture/gse-devops.git
 
 4. Generate a Github token.  Refer to this [link](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token) for detailed instructions.
 
-5. Generate an API key.  Refer to this [link](https://cloud.ibm.com/docs/containers?topic=containers-images#other_registry_accounts) for detailed instructions.
+5. Generate an IBM Cloud API key.  Refer to this [link](https://cloud.ibm.com/docs/containers?topic=containers-images#other_registry_accounts) for detailed instructions.
 
 6. [Optional] Generate a Slack Webhook.  Refer to this [link](https://slack.com/intl/en-ca/help/articles/115005265063-Incoming-webhooks-for-Slack#set-up-incoming-webhooks) for detailed instructions. This is only required if you want to set up notifications from your pipeline.  The instructions below assumes that the pipeline will be posting notifications to Slack.  This can be disabled by modifying the `pipeline` to remove references to the `Slack` tasks.
 
 7. Configure the `cp4i-demo-dev` project on the **Environment Cluster**.
-  1. From a terminal window, log in to the OpenShift cluster.
-  2. Create a namespace for the `DEV` environment.
-  ```
-  oc new-project cp4i-demo-dev
-  ```
-  3. Update the `gse-devops/ace-tekton-pipelines/Secrets/github-access-token-secret.yaml` with the Base64 encoded value of the github token.
-  4. Create a Secret of your github token.
-  ```
-  oc apply -f gse-devops/ace-tekton-pipelines/Secrets/github-access-token-secret.yaml -n cp4i-demo-dev
-  ```
-  5. Create an image pull secret containing credentials to pull images from the private image registry.  In this tutorial, we will be using the IBM Container Registry managed service.
-  ```
-  oc -n cp4i-demo-dev create secret docker-registry <secret_name> --docker-server=<registry_URL> --docker-username=iamapikey --docker-password=<api_key_value> --docker-email=<docker_email>
-  ```
-  6. Update the `gse-devops/ace-tekton-pipelines/Secrets/artifactory-secret.yaml` with the Base64 encoded value of Artifactory URL and user password.  The values can be found in the `artifactory-credentials` secret under the `tools` project.  This was created as part of the installation of the [IBM Garage Cloud Native Toolkit](https://cloudnativetoolkit.dev/).
-  7. Create a Secret for the pipeline to access Artifactory.
-  ```
-  oc apply -f gse-devops/ace-tekton-pipelines/Secrets/artifactory-secret.yaml
-  ```
-  8. [Optional] Update the `gse-devops/ace-tekton-pipelines/Secrets/slack-webhook-secret.yaml` with the Base64 encoded value of the Slack Webhook.
-  9. Create a Secret of your Slack Webhook.
-  ```
-  oc apply -f gse-devops/ace-tekton-pipelines/Secrets/slack-webhook-secret.yaml -n cp4i-demo-dev
-  ```
+    1. From a terminal window, log in to the OpenShift cluster.
+    2. Create a namespace for the `DEV` environment.
+    ```
+    oc new-project cp4i-demo-dev
+    ```
+    3. Update the `gse-devops/ace-tekton-pipelines/Secrets/github-access-token-secret.yaml` with the Base64 encoded value of the github token.
+    4. Create a Secret of your github token.
+    ```
+    oc apply -f gse-devops/ace-tekton-pipelines/Secrets/github-access-token-secret.yaml -n cp4i-demo-dev
+    ```
+    5. Create an image pull secret containing credentials to pull images from the private image registry.  In this tutorial, we will be using the IBM Container Registry managed service.
+    ```
+    oc -n cp4i-demo-dev create secret docker-registry <secret_name> --docker-server=<registry_URL> --docker-username=iamapikey --docker-password=<api_key_value> --docker-email=<docker_email>
+    ```
+    6. Update the `gse-devops/ace-tekton-pipelines/Secrets/artifactory-secret.yaml` with the Base64 encoded value of Artifactory URL and user password.  The values can be found in the `artifactory-credentials` secret under the `tools` project.  This was created as part of the installation of the [IBM Garage Cloud Native Toolkit](https://cloudnativetoolkit.dev/).
+    7. Create a Secret for the pipeline to access Artifactory.
+    ```
+    oc apply -f gse-devops/ace-tekton-pipelines/Secrets/artifactory-secret.yaml
+    ```
+    8. [Optional] Update the `gse-devops/ace-tekton-pipelines/Secrets/slack-webhook-secret.yaml` with the Base64 encoded value of the Slack Webhook.
+    9. Create a Secret of your Slack Webhook.
+    ```
+    oc apply -f gse-devops/ace-tekton-pipelines/Secrets/slack-webhook-secret.yaml -n cp4i-demo-dev
+    ```
 
 8. Configure the `cp4i-demo-qa` project on the **Environment Cluster**.
   1. From a terminal window, log in to the OpenShift cluster.
