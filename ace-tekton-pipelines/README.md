@@ -72,41 +72,41 @@ git clone git@github.com:ibm-cloud-architecture/gse-devops.git
 
 6. [Optional] Generate a Slack Webhook.  Refer to this [link](https://slack.com/intl/en-ca/help/articles/115005265063-Incoming-webhooks-for-Slack#set-up-incoming-webhooks) for detailed instructions. This is only required if you want to set up notifications from your pipeline.  The instructions below assumes that the pipeline will be posting notifications to Slack.  This can be disabled by modifying the `pipeline` to remove references to the `Slack` tasks.
 
-7. Configure the `cp4i-demo-dev` project on the **Environment Cluster**.
+7. Configure the `cp4i-dev` project on the **Environment Cluster**.
     1. From a terminal window, log in to the OpenShift cluster.
     2. Create a namespace for the `DEV` environment.
     ```
-    oc new-project cp4i-demo-dev
+    oc new-project cp4i-dev
     ```
-    3. Update the `gse-devops/ace-tekton-pipelines/Secrets/github-access-token-secret.yaml` with the Base64 encoded value of the github token.
-    4. Create a Secret of your github token.
+    3. Update the `gse-devops/ace-tekton-pipelines/Secrets/github-access-token-secret.yaml` with the Base64 encoded value of the github username and token.
+    4. Create a Secret for your github token.
     ```
-    oc apply -f gse-devops/ace-tekton-pipelines/Secrets/github-access-token-secret.yaml -n cp4i-demo-dev
+    oc apply -f gse-devops/ace-tekton-pipelines/Secrets/github-access-token-secret.yaml -n cp4i-dev
     ```
-    5. Create an image pull secret containing credentials to pull images from the private image registry.  In this tutorial, we will be using the IBM Container Registry managed service.
+    5. Create an image pull secret containing credentials to pull images from the private image registry.  In this tutorial, we will be using the IBM Container Registry managed service.  Substitute the IBM Cloud API key and any email address.
     ```
-    oc -n cp4i-demo-dev create secret docker-registry <secret_name> --docker-server=<registry_URL> --docker-username=iamapikey --docker-password=<api_key_value> --docker-email=<docker_email>
+    oc -n cp4i-dev create secret docker-registry ibm-cr-pull-secret --docker-server=us.icr.io --docker-username=iamapikey --docker-password=<api_key_value> --docker-email=<email>
     ```
-    6. Update the `gse-devops/ace-tekton-pipelines/Secrets/artifactory-secret.yaml` with the Base64 encoded value of Artifactory URL and user password.  The values can be found in the `artifactory-credentials` secret under the `tools` project.  This was created as part of the installation of the [IBM Garage Cloud Native Toolkit](https://cloudnativetoolkit.dev/).
+    6. Update the `gse-devops/ace-tekton-pipelines/Secrets/artifactory-secret.yaml` with the Base64 encoded value of Artifactory URL and admin password.  Artifactory is one of the default tools installed with the [IBM Garage Cloud Native Toolkit](https://cloudnativetoolkit.dev/).
     7. Create a Secret for the pipeline to access Artifactory.
     ```
-    oc apply -f gse-devops/ace-tekton-pipelines/Secrets/artifactory-secret.yaml
+    oc apply -f gse-devops/ace-tekton-pipelines/Secrets/artifactory-secret.yaml -n cp4i-dev
     ```
     8. [Optional] Update the `gse-devops/ace-tekton-pipelines/Secrets/slack-webhook-secret.yaml` with the Base64 encoded value of the Slack Webhook.
     9. Create a Secret of your Slack Webhook.
     ```
-    oc apply -f gse-devops/ace-tekton-pipelines/Secrets/slack-webhook-secret.yaml -n cp4i-demo-dev
+    oc apply -f gse-devops/ace-tekton-pipelines/Secrets/slack-webhook-secret.yaml -n cp4i-dev
     ```
 
-8. Configure the `cp4i-demo-qa` project on the **Environment Cluster**.
+8. Configure the `cp4i-qa` project on the **Environment Cluster**.
   1. From a terminal window, log in to the OpenShift cluster.
   2. Create a namespace for the `QA` environment.
   ```
-  oc new-project cp4i-demo-qa
+  oc new-project cp4i-qa
   ```
   3. Create an image pull secret containing credentials to pull images from the private image registry.  In this tutorial, we will be using the IBM Container Registry managed service.
   ```
-  oc -n cp4i-demo-qa create secret docker-registry <secret_name> --docker-server=<registry_URL> --docker-username=iamapikey --docker-password=<api_key_value> --docker-email=<docker_email>
+  oc -n cp4i-qa create secret docker-registry ibm-cr-pull-secret --docker-server=us.icr.io --docker-username=iamapikey --docker-password=<api_key_value> --docker-email=<email>
   ```
 
 ### Configure Tekton Pipeline & Tasks on the **Environment Cluster**.
@@ -115,20 +115,24 @@ git clone git@github.com:ibm-cloud-architecture/gse-devops.git
 3. Create the Tekton Pipelines and Tasks.
 ```
 # Create Tekton Tasks
-oc apply -f gse-devops/ace-tekton-pipelines/tekton-yamls/Tasks -n cp4i-demo-dev
+oc apply -f gse-devops/ace-tekton-pipelines/tekton-yamls/Tasks -n cp4i-dev
 # Create Tekton PipelineRun
-oc apply -f gse-devops/ace-tekton-pipelines/tekton-yamls/Pipeline -n cp4i-demo-dev
+oc apply -f gse-devops/ace-tekton-pipelines/tekton-yamls/Pipeline -n cp4i-dev
 ```
 
 ### Configure Webhook on the **Environment Cluster**
 1. From a terminal window, log in to the OpenShift cluster.
-2. Create a Tekton Trigger Webhook. The webhook will execute the pipeline upon the merge of a pull request.
+2. Create a Tekton Trigger Webhook. The webhook will execute the pipeline upon the merge of a pull request.  An `EventListener`, `TriggerBinding` and `TriggerTemplate`resource will be created.
 ```
-oc apply -f gse-devops/ace-tekton-pipelines/tekton-yamls/Webhook -n cp4i-demo-dev
+oc apply -f gse-devops/ace-tekton-pipelines/tekton-yamls/Webhook -n cp4i-dev
 ```
-3. Retrieve the `route` URL of the eventlistener.  This is automatically created when the webhook is created in Step 2.
+3. The `EventListener` resource will create result in the creation of a `Deployment` and `Service`.  Expose the service to generate a route.
 ```
-oc get routes el-cp4i-github-eventlistener -n cp4i-demo-dev
+oc expose svc el-cp4i-github-eventlistener -n cp4i-dev
+```
+4. Retrieve the `route` URL of the eventlistener.  
+```
+oc get routes el-cp4i-github-eventlistener -n cp4i-dev
 ```
 4. Create a webhook on the forked [ACE Toolkit workspace](https://github.com/ibm-cloud-architecture/devops-demo-sample-ace-project) repository.  
   1. In a browser, go to the forked repository.
@@ -136,12 +140,15 @@ oc get routes el-cp4i-github-eventlistener -n cp4i-demo-dev
   3. Click `Add webhook` and enter your Github password.
   4. Set the following:
   ```
-  Payload URL = <Route of eventlistener>
+  Payload URL = http://<Route of Eventlistener>
   Content type = application/json
 
   Which events would you like to trigger this webhook? = Let me select individual events
-    Select the checkbox for "Pull requests" and click Add Webhook.
+    Select only the checkbox for "Pull requests" and click Add Webhook.
   ```
+  5. A webhook has now been set up.
+  ![Webhook](../static/imgs/ace-tekton-pipelines/github-webhook.png)
+
 
 ### Configure CP4MCM to support gitops workflow on the **Hub Cluster**
 1. Register the **Environment Cluster** (`OpenShift cluster 4.x + CloudPak for Integration 2020.2.1`) with the **Hub Cluster** (1OpenShift cluster 4.x + CloudPak for MultiCloud Management v1.3`).
@@ -155,23 +162,24 @@ oc get routes el-cp4i-github-eventlistener -n cp4i-demo-dev
   6. Click `Generate command` and copy the generated command.
   7. Log in to the **Environment Cluster** and execute the generated command.
 2. From a terminal window, log in to the OpenShift Hub Cluster with CP4MCM.
-3. Create a namespace for the `cp4i-demo-qa` environment.
+3. Create a namespace for the `cp4i-qa` environment.
 ```
-oc new-project cp4i-demo-qa
+oc new-project cp4i-qa
 ```
-4. Create a Channel for the QA environment repository which was forked earlier.  
+4. Update the `gse-devops/ace-tekton-pipelines/cp4mcm-yamls/Channels.yaml` with the URL to the QA environment repository.
+5. Create a `Channel` for the QA environment repository which was forked earlier.  The `Channel` type is `GitHub` so a deployable object will be generated by CP4MCM for the `IntegrationServer` resource.
 ```
 oc apply -f gse-devops/ace-tekton-pipelines/cp4mcm-yamls/Channels.yaml
 ```
-5. Create a PlacementRule
+6. Create a `PlacementRule`.  This will allow CP4MCM to determine which cluster(s) to deploy an application to by matching labels.
 ```
 oc apply -f gse-devops/ace-tekton-pipelines/cp4mcm-yamls/PlacementRules.yaml
 ```
-6. Create a Subscription
+7. Create a `Subscription`.  The subscription will deploy the resources in a `Channel` to the cluster(s) identified by a `PlacementRule`/
 ```
 oc apply -f gse-devops/ace-tekton-pipelines/cp4mcm-yamls/Subscriptions.yaml
 ```
-7. Create an Application
+8. Create an `Application`.  The `Application` will group together different components of an application which CP4MCM will visualize using weavescope on the CP4MCM console.
 ```
 oc apply -f gse-devops/ace-tekton-pipelines/cp4mcm-yamls/Application.yaml
 ```

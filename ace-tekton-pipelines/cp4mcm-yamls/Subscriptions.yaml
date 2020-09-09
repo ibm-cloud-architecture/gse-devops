@@ -5,7 +5,7 @@ metadata:
   labels:
     app: "cp4i-demo"
 spec:
-  channel: cp4i-demo-qa/cp4i-qa
+  channel: cp4i-qa/cp4i-qa
   placement:
     placementRef:
       kind: PlacementRule
