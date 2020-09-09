@@ -1,0 +1,66 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: gitops
+spec:
+  workspaces:
+    - name: output
+      description: The git repo
+  params:
+    - name: imageUrl
+      description: Image name including repository
+    - name: imageTag
+      description: Image tag
+      default: "latest"
+      type: string
+    - name: gitRepo
+      description: Name of the git repository
+      type: string
+    - name: js-image
+      default: node:12-stretch
+  steps:
+    - name: update-gitops-repo
+      image: $(params.js-image)
+      env:
+        - name: GIT_USER_ACCOUNT
+          valueFrom:
+            secretKeyRef:
+              name: github-access-token
+              key: username
+              optional: true
+        - name: GITHUB_API_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: github-access-token
+              key: password
+              optional: true
+      command: ["/bin/bash"]
+      args:
+        - -c
+        - |
+          set -e
+
+          echo "Cloning the gitops repository"
+
+          # clone repo
+          git clone https://github.com/ibm-cloud-architecture/devops-demo-cp4i-env.git
+          cd devops-demo-cp4i-env
+
+          echo $(params.imageUrl):$(params.imageTag)
+
+          # update value for key applicationImage
+          sed -i '/image:/c\        image: "$(params.imageUrl):$(params.imageTag)"' ./integrationserver.yaml
+
+          # verify the value for key applicationImage got updated
+          cat ./integrationserver.yaml | grep "image"
+
+          # This email is not used and it is not valid, you can ignore but git requires it
+          git config --global user.email "tekton_ci@dte.com"
+          git config --global user.name "tekton"
+
+          # push changes to git
+          git add .
+          git commit -m "Tekton CI commit"
+          # git remote rm origin
+          # git remote add origin https://${GIT_USER_ACCOUNT}:${GITHUB_API_TOKEN}@github.com:ibm-cloud-architecture/devops-demo-cp4i-env.git > /dev/null 2>&1
+          git push origin master

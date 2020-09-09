@@ -1,0 +1,96 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: build-bar
+spec:
+  workspaces:
+    - name: output
+      description: The git repo will be cloned onto the volume backing this workspace
+  params:
+  - default: quay.io/buildah/stable:v1.11.0
+    description: The location of the buildah builder image.
+    name: BUILDER_IMAGE
+    type: string
+  - description: Specify the name of the project being built.
+    name: project
+    type: string
+  - default: .
+    description: Path to the directory to use as context.
+    name: CONTEXT
+    type: string
+  - default: "false"
+    description: Verify the TLS on the registry endpoint (for push/pull to a non-TLS
+      registry)
+    name: TLSVERIFY
+    type: string
+  - default: ./Dockerfile
+    description: Path to the Dockerfile to build.
+    name: DOCKERFILE
+    type: string
+  - name: pathToContext
+    type: string
+    description: The path to the build context within the workspace
+    default: workspace
+  - name: artifactoryRepo
+    type: string
+  - name: imageTag
+    type: string
+  - name: imageUrl
+    type: string
+  steps:
+  - args:
+    - -c
+    - |
+      set -eu;
+      #source ./env-config
+      curl -u $(ARTIFACTORY_USER):$(ARTIFACTORY_PASSWORD) -O "$(ARTIFACTORY_URL)/artifactory/$(params.artifactoryRepo)/$(params.project)-$(params.imageTag).bar"
+
+      pwd
+      ls -la
+      echo $(workspaces.output.path)
+
+      #mv $(params.project)-$(params.imageTag).bar $(workspaces.output.path)/workspace/$(params.project)/gen/$(params.project)-$(params.imageTag).bar
+
+      #ls -la output
+      #ls -la output/workspace
+      #ls -la $(workspaces.output.path)/workspace/$(params.project)/gen/
+      #cd output
+      #ls -la
+
+      printf "Building image\n"
+      buildah bud --build-arg PROJECT1=$(params.project) --tls-verify=$(params.TLSVERIFY) --layers -f $(params.DOCKERFILE) -t $(params.imageUrl):$(params.imageTag) $(params.CONTEXT)
+    command:
+    - /bin/bash
+    envFrom:
+    - secretRef:
+        name: artifactory-credentials
+    image: $(params.BUILDER_IMAGE)
+    name: build-image
+    securityContext:
+      privileged: true
+      runAsUser: 0
+    volumeMounts:
+    - mountPath: /var/lib/containers
+      name: varlibcontainers
+  - args:
+    - '-c'
+    - >
+      set -e
+
+      buildah push --tls-verify=$(params.TLSVERIFY)
+      "$(params.imageUrl):$(params.imageTag)"
+      "docker://$(params.imageUrl):$(params.imageTag)"
+
+    command:
+    - /bin/bash
+    image: $(params.BUILDER_IMAGE)
+    name: push-image
+    securityContext:
+      privileged: true
+      runAsUser: 0
+    volumeMounts:
+    - mountPath: /var/lib/containers
+      name: varlibcontainers
+  volumes:
+  - emptyDir: {}
+    name: varlibcontainers

@@ -1,0 +1,9 @@
+apiVersion: app.ibm.com/v1alpha1
+kind: Channel
+metadata:
+  name: cp4i-qa
+  labels:
+    app: "cp4i-demo"
+spec:
+    type: GitHub
+    pathname: <Git repo URL corresponding to https://github.com/ibm-cloud-architecture/devops-demo-cp4i-env.git>

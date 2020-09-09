@@ -1,0 +1,174 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: sample-ace-pipleline
+spec:
+  workspaces:
+    - name: git-source
+      description: The git repo
+  params:
+  - default: sampleaceproject
+    description: Specify the name of the project being built.
+    name: project
+  - description: The name of the artifactory repository.
+    name: artifactoryRepo
+    default: "generic-local"
+  - name: gitUrl
+    description: Git repository url
+    default:
+  - name: gitRevision
+    description: Git revision to check out
+    default: master
+  - name: DOCKERFILE
+    description: Path to the Dockerfile to build.
+    default: ./Dockerfile
+  - name: pathToContext
+    description: The path to the build context, used by Kaniko - within the workspace
+    default: workspace
+  - name: pathToYamlFile
+    description: The path to the yaml file to deploy within the git source
+  - name: extraArgs
+    description: Extra args to the kaniko task command line
+    default: ""
+  - name: imageUrl
+    description: Image name including repository
+    default: ""
+  - name: imageTag
+    description: Image tag
+    default: "latest"
+  - name: gitRepo
+    description: Name of the git repository
+  tasks:
+    - name: clone-repo
+      taskRef:
+        name: git-clone
+      workspaces:
+        - name: output
+          workspace: git-source
+      params:
+        - name: url
+          value: "$(params.gitUrl)"
+        - name: revision
+          value: "$(params.gitRevision)"
+        - name: subdirectory
+          value: "."
+        - name: deleteExisting
+          value: "true"
+    - name: generate-bar-task
+      taskRef:
+        name: generate-bar
+      workspaces:
+        - name: output
+          workspace: git-source
+      params:
+      - name: project
+        value: $(params.project)
+      - name: artifactoryRepo
+        value: $(params.artifactoryRepo)
+      - name: imageTag
+        value: "$(params.imageTag)"
+      - name: gitRepo
+        value: "$(params.gitRepo)"
+      - name: gitUrl
+        value: "$(params.gitUrl)"
+      - name: pathToYamlFile
+        value: "$(params.pathToYamlFile)"
+      - name: imageUrl
+        value: "$(params.imageUrl)"
+      runAfter:
+      - clone-repo
+    - name: build-task
+      taskRef:
+        name: build-bar
+      workspaces:
+        - name: output
+          workspace: git-source
+      params:
+      - name: project
+        value: $(params.project)
+      - name: artifactoryRepo
+        value: $(params.artifactoryRepo)
+      - name: imageTag
+        value: "$(params.imageTag)"
+      - name: imageUrl
+        value: "$(params.imageUrl)"
+      - name: pathToContext
+        value: "$(params.pathToContext)"
+      - name: DOCKERFILE
+        value: $(workspaces.output.path)/$(params.pathToContext)/$(params.project)/Dockerfile
+      runAfter:
+      - generate-bar-task
+    - name: deploy-task
+      taskRef:
+        name: install-ace-server
+      workspaces:
+        - name: output
+          workspace: git-source
+      params:
+      - name: imageTag
+        value: "$(params.imageTag)"
+      - name: imageUrl
+        value: "$(params.imageUrl)"
+      - name: pathToYamlFile
+        value: "k8s"
+      runAfter:
+      - build-task
+    - name: smoke-test-task
+      taskRef:
+        name: smoke-tests
+      workspaces:
+        - name: output
+          workspace: git-source
+      params:
+      - name: project
+        value: $(params.project)
+      runAfter:
+      - deploy-task
+    - name: slack-post-deploy
+      taskRef:
+        name: send-to-webhook-slack
+      workspaces:
+        - name: output
+          workspace: git-source
+      params:
+      - name: imageTag
+        value: "$(params.imageTag)"
+      - name: imageUrl
+        value: "$(params.imageUrl)"
+      - name: message
+        value: "> $(params.imageUrl):$(params.imageTag) has been successfully deployed."
+      runAfter:
+        - smoke-test-task
+    - name: gitops
+      taskRef:
+        name: gitops
+      workspaces:
+        - name: output
+          workspace: git-source
+      runAfter:
+        - slack-post-deploy
+      workspaces:
+        - name: output
+          workspace: git-source
+      params:
+        - name: imageUrl
+          value: $(params.imageUrl)
+        - name: imageTag
+          value: $(params.imageTag)
+        - name: gitRepo
+          value: $(params.gitRepo)
+    - name: slack-post-gitops
+      taskRef:
+        name: send-to-webhook-slack
+      workspaces:
+        - name: output
+          workspace: git-source
+      params:
+      - name: imageTag
+        value: "$(params.imageTag)"
+      - name: imageUrl
+        value: "$(params.imageUrl)"
+      - name: message
+        value: "> $(params.imageUrl):$(params.imageTag) has been successfully deployed to *cp4i-demo-qa* namespace."
+      runAfter:
+        - gitops
