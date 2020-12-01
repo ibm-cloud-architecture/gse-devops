@@ -65,8 +65,6 @@ spec:
     envFrom:
     - secretRef:
         name: artifactory-credentials
-    - secretRef:
-        name: ibm-cr-pull-secret
 
     image: $(params.BUILDER_IMAGE)
     name: build-image
@@ -80,8 +78,6 @@ spec:
     - '-c'
     - >
       set -e
-
-      buildah ls
 
       buildah push --tls-verify=$(params.TLSVERIFY)
       "$(params.imageUrl):$(params.imageTag)"
