@@ -43,7 +43,7 @@ spec:
     - |
       set -eu;
       #source ./env-config
-      curl -u $(ARTIFACTORY_USER):$(ARTIFACTORY_PASSWORD) -O "$(ARTIFACTORY_URL)/artifactory/$(params.artifactoryRepo)/$(params.project)-$(params.imageTag).bar"
+      curl -u ${ARTIFACTORY_USER}:${ARTIFACTORY_PASSWORD} -O "$(ARTIFACTORY_URL)/artifactory/$(params.artifactoryRepo)/$(params.project)-$(params.imageTag).bar"
 
       pwd
       ls -la
@@ -58,12 +58,14 @@ spec:
       #ls -la
 
       printf "Building image\n"
+      
       buildah bud --build-arg PROJECT1=$(params.project) --tls-verify=$(params.TLSVERIFY) --layers -f $(params.DOCKERFILE) -t $(params.imageUrl):$(params.imageTag) $(params.CONTEXT)
     command:
     - /bin/bash
     envFrom:
     - secretRef:
         name: artifactory-credentials
+
     image: $(params.BUILDER_IMAGE)
     name: build-image
     securityContext:

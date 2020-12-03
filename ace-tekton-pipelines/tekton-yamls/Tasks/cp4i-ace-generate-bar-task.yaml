@@ -70,7 +70,7 @@ spec:
 
       echo Compile completed
       echo "Push the bar file to artifactory"
-      curl -u $(ARTIFACTORY_USER):$(ARTIFACTORY_PASSWORD) -T $(params.project)/gen/$(params.project)-$(params.imageTag).bar "$(ARTIFACTORY_URL)/artifactory/$(params.artifactoryRepo)/$(params.project)-$(params.imageTag).bar"
+      curl -u ${ARTIFACTORY_USER}:${ARTIFACTORY_PASSWORD} -T $(params.project)/gen/$(params.project)-$(params.imageTag).bar "$(ARTIFACTORY_URL)/artifactory/$(params.artifactoryRepo)/$(params.project)-$(params.imageTag).bar"
     command:
     - /bin/sh
     envFrom:
